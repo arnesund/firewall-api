@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import shelve
 from flask import Flask, request, render_template, jsonify, make_response
 app = Flask(__name__)
 from IPy import IP
@@ -7,6 +8,13 @@ from IPy import IP
 sys.path.append('../')
 from subnets import subnets
 from graph import graph
+
+
+# Load accesslist-database
+try:
+    db = shelve.open('input/accesslists.db')
+except:
+    app.logger.error('Unable to open database, exiting!')
 
 
 #### HTML Endpoints ####
