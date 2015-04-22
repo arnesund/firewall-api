@@ -19,7 +19,7 @@ def result_page(srcip, dstip, dstport):
     # ...
     # ...
 
-    return render_template('result.html', option1=..., option2=...)
+    return render_template('result.html')
 
 
 
