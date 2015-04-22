@@ -112,12 +112,24 @@ def get_firewall_rules(hostname, acl, srcip=None, dstip=None, proto=None, dstpor
     # Validate existence of accesslist data
     if hostname not in firewalls or hostname not in accesslists:
         return jsonify({'error': 'Firewall not found in database, please try again.'}), 404
+    if acl not in accesslists[hostname]:
+        return jsonify({'error': 'Accesslist not found in database, please try again.'}), 404
 
+    # Create Connection object to match against firewall rules
+    conn = FirewallRule(True, proto, '', srcip, dstip, dport=dstport)
 
+    # Find rules to check (only those with the same protocol, or protocol=IP)
+    relevantrules = accesslists[hostname][acl]['protocols'][protocol] + 
+                    accesslists[hostname][acl]['protocols']['ip']
+    relevantrules.sort()
 
+    for ruleindex in relevantrules:
+        # Check if connection would be permitted by this rule
+        if conn in accesslists[hostname][acl]['rules'][ruleindex]:
+            result = (True, repr(accesslists[hostname][acl]['rules'][ruleindex]))
+            break
 
-    return jsonify({'rules': []})
-
+    return jsonify({'result': result})
 
 
 
