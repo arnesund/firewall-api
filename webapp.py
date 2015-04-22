@@ -57,7 +57,7 @@ def result_page():
         call_result = call_query.json()
         calls.append(call_result)
     print calls
-    return render_template('result.html', data=path)
+    return render_template('result.html', data=calls)
 
 # Error handler
 @app.errorhandler(404)
