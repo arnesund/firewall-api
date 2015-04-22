@@ -27,9 +27,24 @@ def result_page(srcip, dstip, dstport):
 
 # API path endpoint
 @app.route('/api/v1/destinations/<dstip>?srcip=<srcip>')
-def find_path():
-    result = []
-    return jsonify(result)
+def find_path(graph, start, end, path=[]):
+    path = path + [start]
+    if start == end:
+        return path
+    if not graph.has_key(start):
+        return None
+    for node in graph[start]:
+        if node not in path:
+            newpath = find_path(graph, node, end, path)
+            if newpath: return newpath
+    return None
+res = find_path(graph, '157.249.20.0/24', '157.249.32.0/24')
+fw_path = []
+for i in res:
+    if "fw" in i or "fg" in i:
+        fw_path.append(i)
+result = [fw_path[::2]]
+return jsonify(result)
 
 
 # API test endpoint
