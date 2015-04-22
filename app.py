@@ -50,7 +50,7 @@ def result_page():
     path_output = post_path(dstip, srcip)
 
     import json
-    path = []
+#    path = []
     path = json.loads(path_output)
 
     return render_template('result.html', data=path)
