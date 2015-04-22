@@ -56,8 +56,13 @@ def result_page():
         call_query = requests.get(get_url)
         call_result = call_query.json()
         calls.append(call_result)
-    print calls
-    return render_template('result.html', data=calls)
+
+    permitted = True
+    for entry in calls:
+        if not entry['result']['permitted']:
+            permitted = False
+        
+    return render_template('result.html', data=calls, permit=permitted)
 
 # Error handler
 @app.errorhandler(404)
