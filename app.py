@@ -98,10 +98,15 @@ def get_firewall_rules(hostname, acl, srcip=None, dstip=None, proto=None, dstpor
     for ruleindex in relevantrules:
         # Check if connection would be permitted by this rule
         if conn in accesslists[hostname][acl]['rules'][ruleindex]:
-            result = (True, repr(accesslists[hostname][acl]['rules'][ruleindex]))
+            result = {'permitted': True, 'firewallrule': str(accesslists[hostname][acl]['rules'][ruleindex]), \
+                    'rulecomment': '\n'.join(accesslists[hostname][acl]['rules'][ruleindex].comments)}
             break
     else:
-        result = (False, '')
+        result = {'permitted': False}
+
+    # Add info from request for easier reference
+    result['firewall'] = hostname
+    result['accesslist'] = acl
 
     return jsonify({'result': result})
 
