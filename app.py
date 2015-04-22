@@ -92,7 +92,6 @@ def post_path(dstip, srcip=None):
     for entry in result:
         parts  = entry.split("_")
         post_result.append(parts)
-    print post_result
     return jsonify({'path': post_result})
 
 
