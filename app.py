@@ -47,8 +47,9 @@ def result_page():
     # ...
     # ...
 
-    return render_template('result.html')
+    path = post_path(dstip, srcip)
 
+    return render_template('result.html', data=path)
 
 
 #### API Endpoints ####
