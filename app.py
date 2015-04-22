@@ -47,7 +47,7 @@ def result_page():
     # ...
     # ...
 
-    pathi_output = post_path(dstip, srcip)
+    path_output = post_path(dstip, srcip)
 
 
     path.append(json.loads(path_output))
