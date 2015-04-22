@@ -2,6 +2,7 @@
 import sys
 import shelve
 from IPy import IP
+from firewallrule import FirewallRule
 from flask import Flask, request, render_template, jsonify, make_response
 
 # Initialize Flask application
@@ -16,8 +17,11 @@ from graph import graph
 # Load accesslist-database
 try:
     db = shelve.open('input/accesslists.db')
+    accesslists = db['accesslists']
+    firewalls = db['firewalls']
+    db.close()
 except:
-    app.logger.error('Unable to open database, exiting!')
+    app.logger.error('Unable to open accesslist-database, exiting!')
 
 
 #### HTML Endpoints ####
@@ -32,6 +36,12 @@ def index_page():
 @app.route('/result')
 # /result?srcip=<srcip>&dstip=<dstip>&proto=<proto>&dstport=<dstport>
 def result_page():
+    # Get access to request arguments
+    srcip = request.args.get('srcip')
+    dstip = request.args.get('dstip')
+    proto = request.args.get('proto')
+    dstport = request.args.get('dstport')
+
     # Call other functions to perform check
     # find_path(...)
     # ...
@@ -83,8 +93,8 @@ def post_path(dstip, srcip=None):
 
 
 
-@app.route('/api/v1/firewalls/<name>/rules/<acl>')
-def get_firewall_rules(name, acl, srcip=None, dstip=None, proto=None, dstport=None):
+@app.route('/api/v1/firewalls/<hostname>/rules/<acl>')
+def get_firewall_rules(hostname, acl, srcip=None, dstip=None, proto=None, dstport=None):
     if not srcip:
         srcip = request.args.get('srcip')
     if not dstip:
@@ -93,6 +103,13 @@ def get_firewall_rules(name, acl, srcip=None, dstip=None, proto=None, dstport=No
         proto = request.args.get('proto')
     if not dstport:
         dstport = request.args.get('dstport')
+
+    # Validate existence of accesslist data
+    if hostname not in firewalls or hostname not in accesslists:
+        return jsonify({'error': 'Firewall not found in database, please try again.'}), 404
+
+
+
 
     return jsonify({'rules': []})
 
