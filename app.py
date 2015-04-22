@@ -33,7 +33,7 @@ def result_page(srcip, dstip, dstport):
 
 # API path endpoint
 def find_path(graph, start, end, path=[]):
-    app.logger.debug('find_path({},{})'.format(start, end))
+    app.logger.debug('find_path({}, {}, path={})'.format(start, end, path))
     path = path + [start]
     if start == end:
         return path
