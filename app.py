@@ -1,9 +1,13 @@
 #!/usr/bin/env python
+import sys
 from flask import Flask, request, render_template, jsonify, make_response
 app = Flask(__name__)
 from IPy import IP
+
+sys.path.append('../')
 from subnets import subnets
 from graph import graph
+
 
 #### HTML Endpoints ####
 
@@ -29,6 +33,7 @@ def result_page(srcip, dstip, dstport):
 
 # API path endpoint
 def find_path(graph, start, end, path=[]):
+    app.logger.debug('find_path({}, {}, path={})'.format(start, end, path))
     path = path + [start]
     if start == end:
         return path
