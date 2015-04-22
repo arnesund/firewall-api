@@ -39,7 +39,7 @@ def find_path(graph, start, end, path=[]):
     return None
 
 @app.route('/api/v1/destinations/<dstip>?srcip=<srcip>')
-def post_path(srcip, dstip)
+def post_path(srcip, dstip):
     res = find_path(graph, '157.249.20.0/24', '157.249.32.0/24')
     fw_path = []
     for i in res:
