@@ -53,14 +53,27 @@ def get_subnet(ip):
 def post_path(dstip, srcip=None):
     if not srcip:
         srcip = request.args.get('srcip')
+
+    # Determine subnet that srcip and dstip belong to
     src_subnet = get_subnet(srcip)
     dst_subnet = get_subnet(dstip)
+
+    # Determine path
     res = find_path(graph, src_subnet, dst_subnet)
+
+    # Filter out every object that is not a firewall
     fw_path = []
-    for i in res:
-        if "fw" in i or "fg" in i:
-            fw_path.append(i)
+    if res:
+        for i in res:
+            if "fw" in i or "fg" in i:
+                fw_path.append(i)
+    else:
+        return jsonify({'error': 'Unable to determine path from {0} to {1}'.format(srcip, dstip)}), 404
+
+    # Parse out every other access list
     result = fw_path[::2]
+
+    # Postprocess result list and return results
     post_result = []
     for entry in result:
         parts  = entry.split("_")
@@ -91,8 +104,11 @@ def get_firewall_rules(hostname, acl, srcip=None, dstip=None, proto=None, dstpor
     conn = FirewallRule(True, proto, '', srcip, dstip, dport=dstport)
 
     # Create list of rule IDs to check (only those with the same protocol, or protocol=IP)
-    relevantrules = accesslists[hostname][acl]['protocols'][proto] + \
-                    accesslists[hostname][acl]['protocols']['ip']
+    if proto in accesslists[hostname][acl]['protocols']:
+        relevantrules = accesslists[hostname][acl]['protocols'][proto] + \
+                        accesslists[hostname][acl]['protocols']['ip']
+    else:
+        relevantrules = accesslists[hostname][acl]['protocols']['ip']
     relevantrules.sort()
 
     for ruleindex in relevantrules:
