@@ -53,7 +53,9 @@ def result_page():
     calls = []
     for parts in get_result['path']:
         calls = "http://localhost:5000/api/v1/firewalls/{0}/rules/{1}?srcip={2}&dstip={3}&proto={4}&dstport={5}".format(parts[0], parts[1], srcip, dstip, proto, dstport)
-        print calls
+        call_query = requests.get(calls)
+        call_result = call_query.json()
+        print call_result
     path = "test string"
     return render_template('result.html', data=path)
 
