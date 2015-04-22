@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import shelve
+import requests
 from IPy import IP
 from firewallrule import FirewallRule
 from flask import Flask, request, render_template, jsonify, make_response
@@ -25,33 +26,6 @@ except:
 
 
 #### HTML Endpoints ####
-
-# View main page
-@app.route('/')
-def index_page():
-    return render_template('index.html')
-
-
-# View result page
-@app.route('/result')
-# /result?srcip=<srcip>&dstip=<dstip>&proto=<proto>&dstport=<dstport>
-def result_page():
-    # Get access to request arguments
-    srcip = request.args.get('srcip')
-    dstip = request.args.get('dstip')
-    proto = request.args.get('proto')
-    dstport = request.args.get('dstport')
-
-    # Call other functions to perform check
-    # find_path(...)
-    # ...
-    # ...
-
-    path_output = post_path(dstip, srcip)
-
-    path = path_output.json()
-
-    return render_template('result.html', data=path)
 
 
 #### API Endpoints ####
