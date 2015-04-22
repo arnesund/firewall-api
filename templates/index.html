@@ -1,5 +1,8 @@
 <!doctype html>
 <title>Firewall API</title>
+
+<link rel="stylesheet" type="text/css" href="http://rancid2.met.no/rancid.css">
+
   <h1>Firewall API</h1>
 
 <H2>Check if traffic from one ip to another on a specific port is allowed</h2>
@@ -10,9 +13,9 @@
 <tr><td>From ip-address:</td><td>To ip-address:</td><td>Port</td></tr>
 
 <tr>
-<td><INPUT NAME="from_ip" TYPE="text" SIZE="15"></td>
-<td><INPUT NAME="to_ip" TYPE="text" SIZE="15"></td>
-<td><INPUT NAME="port" TYPE="text" SIZE="5"></td>
+<td><INPUT NAME="from_ip" TYPE="text" SIZE="15" maxlength="15"></td>
+<td><INPUT NAME="to_ip" TYPE="text" SIZE="15" maxlength="15"></td>
+<td><INPUT NAME="port" TYPE="text" SIZE="5" maxlength="5"></td>
 </tr>
 
 <tr><td><INPUT TYPE="submit" value="Send"></td></tr>
