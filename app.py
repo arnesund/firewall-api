@@ -49,6 +49,8 @@ def result_page():
 
     path = post_path(dstip, srcip)
 
+    json.loads(path))
+
     return render_template('result.html', data=path)
 
 
