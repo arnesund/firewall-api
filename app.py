@@ -1,9 +1,13 @@
 #!/usr/bin/env python
+import sys
 from flask import Flask, request, render_template, jsonify, make_response
 app = Flask(__name__)
 from IPy import IP
+
+sys.path.append('../')
 from subnets import subnets
 from graph import graph
+
 
 #### HTML Endpoints ####
 
