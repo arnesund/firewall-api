@@ -52,11 +52,11 @@ def result_page():
     get_result = path_output.json()
     calls = []
     for parts in get_result['path']:
-        calls = "http://localhost:5000/api/v1/firewalls/{0}/rules/{1}?srcip={2}&dstip={3}&proto={4}&dstport={5}".format(parts[0], parts[1], srcip, dstip, proto, dstport)
-        call_query = requests.get(calls)
+        get_url = "http://localhost:5000/api/v1/firewalls/{0}/rules/{1}?srcip={2}&dstip={3}&proto={4}&dstport={5}".format(parts[0], parts[1], srcip, dstip, proto, dstport)
+        call_query = requests.get(get_url)
         call_result = call_query.json()
-        print call_result
-    path = "test string"
+        calls.append(call_result)
+    print calls
     return render_template('result.html', data=path)
 
 # Error handler
