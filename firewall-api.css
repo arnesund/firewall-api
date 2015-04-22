@@ -1,0 +1,22 @@
+BODY { background-color:#dddddd;}
+P.f1 {font-size:10; color:red; background-color: #00FF00}
+FONT.f1 {color: #FFFF00}
+FONT.f2 {color: #00FF00}
+FONT.f3 {color: #00FFFF}
+FONT.f4 {color: #4DA5FF}
+FONT.f5 {color: #FF00FF}
+H4 {font-size:22;padding:0 3 0 3; border:0 0 0 0;border-bottom:0;}
+H1 {font-size:18;background-color:#1C8AAE;padding:0 0 0 10; border: 5 5 5 5; color:#fff; margin: 0 0 0 0;}
+H2 {font-size:12;}
+H3 {font-size:18;background-color:#1C8AAE;padding:0 0 0 10; border: 5 5 5 5; color:#fff; margin: 0 0 0 0;}
+H4 {font-size:18;text-decoration: none; background-color:#1C8AAE;padding:0 0 0 10; border: 5 5 5 5; color:#C00000; margin: 0 0 0 0;}
+A:LINK.H3, A:VISITED.H3 {font-size:18;background-color:#1C8AAE;padding:0 0 0 10; border: 5 5 5 5; color:#fff; margin: 0 0 0 0;}
+A:HOVER.H3 {font-size:18;background-color:#1C8AAE;padding:0 0 0 10; border: 5 5 5 5; color:#0000C0; margin: 0 0 0 0;}
+A:LINK.H4, A:VISITED.H4 {font-size:18;background-color:#1C8AAE;padding:0 0 0 10; border: 5 5 5 5; color:#C00000; margin: 0 0 0 0; text-decoration: none;}
+A:HOVER.H4 {font-size:18;background-color:#1C8AAE;padding:0 0 0 10; border: 5 5 5 5; color:#C00000; margin: 0 0 0 0; text-decoration: none;}
+H3.odde {font-size:14;background-color:#1D5AAD;padding:0 0 0 10; border: 5 5 5 5; color:#fff; width=100%; margin: 0 0 0 0;}
+TD.black {font-size:18;color:#FFFFFF;background-color:#000000;}
+HR {color:#1C8AAE;background-color:#1C8AAE;height:5;}
+HR.blue {color:#1C8AAE;background-color:#1C8AAE;height:5;}
+
+
