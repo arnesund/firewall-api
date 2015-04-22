@@ -30,7 +30,7 @@ def index_page():
 
 # View result page
 @app.route('/result')
-# /result?srcip=<srcip>&dstip=<dstip>&dstport=<dstport>
+# /result?srcip=<srcip>&dstip=<dstip>&proto=<proto>&dstport=<dstport>
 def result_page():
     # Call other functions to perform check
     # find_path(...)
@@ -79,6 +79,24 @@ def post_path(dstip, srcip=None):
             fw_path.append(i)
     result = fw_path[::2]
     return jsonify({'path': result})
+
+
+
+
+@app.route('/api/v1/firewalls/<name>/rules/<acl>')
+def get_firewall_rules(name, acl, srcip=None, dstip=None, proto=None, dstport=None):
+    if not srcip:
+        srcip = request.args.get('srcip')
+    if not dstip:
+        dstip = request.args.get('dstip')
+    if not proto:
+        proto = request.args.get('proto')
+    if not dstport:
+        dstport = request.args.get('dstport')
+
+    return jsonify({'rules': []})
+
+
 
 
 # API test endpoint
