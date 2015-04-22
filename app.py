@@ -90,7 +90,7 @@ def get_firewall_rules(hostname, acl, srcip=None, dstip=None, proto=None, dstpor
     # Create Connection object to match against firewall rules
     conn = FirewallRule(True, proto, '', srcip, dstip, dport=dstport)
 
-    # Find rules to check (only those with the same protocol, or protocol=IP)
+    # Create list of rule IDs to check (only those with the same protocol, or protocol=IP)
     relevantrules = accesslists[hostname][acl]['protocols'][proto] + \
                     accesslists[hostname][acl]['protocols']['ip']
     relevantrules.sort()
