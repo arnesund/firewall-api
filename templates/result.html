@@ -25,12 +25,26 @@
 
 </form>
 
-
 {% if data %}
-  <H2> {{ data }}!</H2>
+{% for entry in data %}
+{% if entry['result']['permitted'] %}
+<p><div class="permitted">PERMITTED</div>
+Firewall: {{ entry['result']['firewall'] }}<br />
+Access-list: {{ entry['result']['accesslist'] }}<br />
+{{ entry['result']['rulecomment'] }}<br />
+{{ entry['result']['firewallrule'] }}<br />
+</p>
+{% else %}
+<p><div class="denied">DENIED</div>
+Firewall: {{ entry['result']['firewall'] }}<br />
+Access-list: {{ entry['result']['accesslist'] }}<br />
+</p>
+{% endif %}
+
+{% endfor %}
 {% else %}
 
-<H2>No results ready, please wait for the project to finish...</H2>
+<H2>No results, please try again!</H2>
 {% endif %}
 
 
