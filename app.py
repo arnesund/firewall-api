@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 import sys
 import shelve
-from flask import Flask, request, render_template, jsonify, make_response
-app = Flask(__name__)
 from IPy import IP
+from flask import Flask, request, render_template, jsonify, make_response
 
+# Initialize Flask application
+app = Flask(__name__)
+
+# Load config files outside repository
 sys.path.append('../')
 from subnets import subnets
 from graph import graph
@@ -26,8 +29,9 @@ def index_page():
 
 
 # View result page
-@app.route('/result?srcip=<srcip>&dstip=<dstip>&dstport=<dstport>')
-def result_page(srcip, dstip, dstport):
+@app.route('/result')
+# /result?srcip=<srcip>&dstip=<dstip>&dstport=<dstport>
+def result_page():
     # Call other functions to perform check
     # find_path(...)
     # ...
