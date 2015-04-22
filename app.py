@@ -64,8 +64,9 @@ def get_subnet(ip):
             return str(subnet)
 
 @app.route('/api/v1/destinations/<dstip>')
-def post_path(dstip):
-    srcip = request.args.get('srcip')
+def post_path(dstip, srcip=None):
+    if not srcip:
+        srcip = request.args.get('srcip')
     src_subnet = get_subnet(srcip)
     app.logger.debug(src_subnet)
     dst_subnet = get_subnet(dstip)
