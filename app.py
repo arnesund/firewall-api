@@ -51,7 +51,7 @@ def result_page():
 
     import json
 #    path = []
-    path = json.load(path_output)
+    path = json.load(path_output.content)
 
     return render_template('result.html', data=path)
 
