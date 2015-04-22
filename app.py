@@ -56,7 +56,6 @@ def result_page():
 
 # API path endpoint
 def find_path(graph, start, end, path=[]):
-    app.logger.debug('find_path({}, {}, path={})'.format(start, end, path))
     path = path + [start]
     if start == end:
         return path
@@ -79,11 +78,8 @@ def post_path(dstip, srcip=None):
     if not srcip:
         srcip = request.args.get('srcip')
     src_subnet = get_subnet(srcip)
-    app.logger.debug(src_subnet)
     dst_subnet = get_subnet(dstip)
-    app.logger.debug(dst_subnet)
     res = find_path(graph, src_subnet, dst_subnet)
-    app.logger.debug(res)
     fw_path = []
     for i in res:
         if "fw" in i or "fg" in i:
