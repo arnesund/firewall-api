@@ -87,7 +87,12 @@ def post_path(dstip, srcip=None):
         if "fw" in i or "fg" in i:
             fw_path.append(i)
     result = fw_path[::2]
-    return jsonify({'path': result})
+    post_result = []
+    for entry in result:
+        parts  = entry.split("_")
+        post_result.append(parts)
+    print post_result
+    return jsonify({'path': post_result})
 
 
 
