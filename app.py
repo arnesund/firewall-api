@@ -2,6 +2,7 @@
 import sys
 import shelve
 from IPy import IP
+from firewallrule import FirewallRule
 from flask import Flask, request, render_template, jsonify, make_response
 
 # Initialize Flask application
@@ -16,8 +17,11 @@ from graph import graph
 # Load accesslist-database
 try:
     db = shelve.open('input/accesslists.db')
+    accesslists = db['accesslists']
+    firewalls = db['firewalls']
+    db.close()
 except:
-    app.logger.error('Unable to open database, exiting!')
+    app.logger.error('Unable to open accesslist-database, exiting!')
 
 
 #### HTML Endpoints ####
@@ -32,20 +36,26 @@ def index_page():
 @app.route('/result')
 # /result?srcip=<srcip>&dstip=<dstip>&proto=<proto>&dstport=<dstport>
 def result_page():
+    # Get access to request arguments
+    srcip = request.args.get('srcip')
+    dstip = request.args.get('dstip')
+    proto = request.args.get('proto')
+    dstport = request.args.get('dstport')
+
     # Call other functions to perform check
     # find_path(...)
     # ...
     # ...
 
-    return render_template('result.html')
+    path = post_path(dstip, srcip)
 
+    return render_template('result.html', data=path)
 
 
 #### API Endpoints ####
 
 # API path endpoint
 def find_path(graph, start, end, path=[]):
-    app.logger.debug('find_path({}, {}, path={})'.format(start, end, path))
     path = path + [start]
     if start == end:
         return path
@@ -68,11 +78,8 @@ def post_path(dstip, srcip=None):
     if not srcip:
         srcip = request.args.get('srcip')
     src_subnet = get_subnet(srcip)
-    app.logger.debug(src_subnet)
     dst_subnet = get_subnet(dstip)
-    app.logger.debug(dst_subnet)
     res = find_path(graph, src_subnet, dst_subnet)
-    app.logger.debug(res)
     fw_path = []
     for i in res:
         if "fw" in i or "fg" in i:
@@ -88,8 +95,8 @@ def post_path(dstip, srcip=None):
 
 
 
-@app.route('/api/v1/firewalls/<name>/rules/<acl>')
-def get_firewall_rules(name, acl, srcip=None, dstip=None, proto=None, dstport=None):
+@app.route('/api/v1/firewalls/<hostname>/rules/<acl>')
+def get_firewall_rules(hostname, acl, srcip=None, dstip=None, proto=None, dstport=None):
     if not srcip:
         srcip = request.args.get('srcip')
     if not dstip:
@@ -98,6 +105,13 @@ def get_firewall_rules(name, acl, srcip=None, dstip=None, proto=None, dstport=No
         proto = request.args.get('proto')
     if not dstport:
         dstport = request.args.get('dstport')
+
+    # Validate existence of accesslist data
+    if hostname not in firewalls or hostname not in accesslists:
+        return jsonify({'error': 'Firewall not found in database, please try again.'}), 404
+
+
+
 
     return jsonify({'rules': []})
 
