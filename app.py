@@ -100,6 +100,8 @@ def get_firewall_rules(hostname, acl, srcip=None, dstip=None, proto=None, dstpor
         if conn in accesslists[hostname][acl]['rules'][ruleindex]:
             result = (True, repr(accesslists[hostname][acl]['rules'][ruleindex]))
             break
+    else:
+        result = (False, '')
 
     return jsonify({'result': result})
 
