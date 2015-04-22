@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 from flask import Flask, request, render_template, jsonify, make_response
 app = Flask(__name__)
-
+from IPy import IP
+from subnets import subnets
+from graph import graph
 
 #### HTML Endpoints ####
 
@@ -38,15 +40,27 @@ def find_path(graph, start, end, path=[]):
             if newpath: return newpath
     return None
 
-@app.route('/api/v1/destinations/<dstip>?srcip=<srcip>')
-def post_path(srcip, dstip):
-    res = find_path(graph, '157.249.20.0/24', '157.249.32.0/24')
+def get_subnet(ip):
+    address = IP(ip)
+    for subnet in subnets:
+        if address in subnet:
+            return str(subnet)
+
+@app.route('/api/v1/destinations/<dstip>')
+def post_path(dstip):
+    srcip = request.args.get('srcip')
+    src_subnet = get_subnet(srcip)
+    app.logger.debug(src_subnet)
+    dst_subnet = get_subnet(dstip)
+    app.logger.debug(dst_subnet)
+    res = find_path(graph, src_subnet, dst_subnet)
+    app.logger.debug(res)
     fw_path = []
     for i in res:
         if "fw" in i or "fg" in i:
             fw_path.append(i)
-    result = [fw_path[::2]]
-    return jsonify(result)
+    result = fw_path[::2]
+    return jsonify({'path': result})
 
 
 # API test endpoint
