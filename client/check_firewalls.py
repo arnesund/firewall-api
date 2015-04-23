@@ -8,7 +8,7 @@ import optparse
 import requests
 
 # Base URL to API server
-APISERVER='http://10.99.1.194:5000/api/v1'
+APISERVER='http://api.firewall.met.no/api/v1'
 
 # Command line option parsing info
 usage = '%prog [-h|--help] [-s|--srcip SOURCE-IP] [-d|--dstip DESTINATION-IP] [--proto PROTOCOL] [-p|--dstport DESTIONATION-PORT]'
