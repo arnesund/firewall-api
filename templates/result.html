@@ -43,7 +43,7 @@ Access-list: {{ entry['result']['accesslist'] }}<br />
 </p>
 {% else %}
 <p><div class="denied">DENIED</div>
-Firewall: {{ entry['result']['firewall'] }}<br />
+Firewall: <A HREF="http://rancid2/cgi-bin/cvsweb/network/configs/{{ entry['result']['firewall'] }}.met.no?rev=HEAD;content-type=text/plain">{{ entry['result']['firewall'] }}</A><br />
 Access-list: {{ entry['result']['accesslist'] }}<br />
 </p>
 {% endif %}
