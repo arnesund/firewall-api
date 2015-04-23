@@ -1,0 +1,47 @@
+<!doctype html>
+<head>
+<title>Firewall API Documentation</title>
+</head>
+<body>
+<h1>Firewall API Documentation</h1>
+<h2>Introduction</h2>
+<p>The firewall API is a REST interface into the rulesets that decide whether network traffic is permitted or denied through the firewalls. Using this interface you can get answers to whether a certain type of traffic is allowed or not.</p>
+<h2>Available products</h2>
+<ul>
+  <li>Destinations</li>
+  <li>Firewalls</li>
+</ul>
+<h2>Interface documentation</h2>
+<h3>Destinations Endpoint</h3>
+<p>The Destinations endpoint is used to answer queries like "What firewalls and accesslists does the traffic pass from on the way to the destination?". Giving a destination IP and a source IP for the traffic, the API returns an ordered list of firewalls and accesslists that the traffic will be checked by.</p>
+<h4>Usage</h4>
+<h5>Parameters:</h5>
+<ul>
+<li>destination, an IPv4 address in dotted quad notation</li>
+<li>source, an IPv4 address in dotted quad notation</li>
+</ul>
+<h5>Sample requests</h5>
+<p>http://api.firewall.met.no/api/v1/destinations/157.249.37.22?srcip=157.249.20.14</p>
+<p>http://api.firewall.met.no/api/v1/destinations/8.8.4.4?srcip=157.249.66.100</p>
+<h5>Results</h5>
+<p>The results is a list in JSON format with subelements consisting of the hostname of a firewall and the accesslist on that firewall that the traffic will be checked by. Please note that the list is ordered, so the traffic will first be checked by the first firewall, then the second, and so on.</p>
+<p>Sample results:</p>
+<pre>
+{
+  "path": [
+    [
+      "fw-int", 
+      "inside-in"
+    ], 
+    [
+      "fw-main", 
+      "inside-in"
+    ], 
+    [
+      "fw-eklima", 
+      "outside-in"
+    ]
+  ]
+}
+</pre>
+<h3>Firewalls Endpoint</h3>
