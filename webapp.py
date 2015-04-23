@@ -11,8 +11,6 @@ app = Flask(__name__)
 
 # Load config files outside repository
 sys.path.append('../')
-from subnets import subnets
-from graph import graph
 
 
 # Load accesslist-database
