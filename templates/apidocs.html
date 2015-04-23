@@ -21,8 +21,8 @@
 <li>source, an IPv4 address in dotted quad notation (mandatory)</li>
 </ul>
 <h5>Sample requests</h5>
-<p>http://api.firewall.met.no/api/v1/destinations/157.249.37.22?srcip=157.249.66.100</p>
-<p>http://api.firewall.met.no/api/v1/destinations/8.8.4.4?srcip=157.249.66.100</p>
+<p><a href="http://api.firewall.met.no/api/v1/destinations/157.249.37.22?srcip=157.249.66.100">http://api.firewall.met.no/api/v1/destinations/157.249.37.22?srcip=157.249.66.100</a></p>
+<p><a href="http://api.firewall.met.no/api/v1/destinations/8.8.4.4?srcip=157.249.66.100">http://api.firewall.met.no/api/v1/destinations/8.8.4.4?srcip=157.249.66.100</a></p>
 <h5>Results</h5>
 <p>The results is a list in JSON format with subelements consisting of the hostname of a firewall and the accesslist on that firewall that the traffic will be checked by. Please note that the list is ordered, so the traffic will first be checked by the first firewall, then the second, and so on.</p>
 <p>Sample results:</p>
@@ -57,8 +57,8 @@
 <li>destination port, an integer</li>
 </ul>
 <h5>Sample requests</h5>
-<p>http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=100.200.30.40&dstip=157.249.37.22&dstport=80&proto=tcp</p>
-<p>http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=1.2.3.4&dstip=157.249.37.10&dstport=80&proto=tcp</p>
+<p><a href="http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=100.200.30.40&dstip=157.249.37.22&dstport=80&proto=tcp">http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=100.200.30.40&dstip=157.249.37.22&dstport=80&proto=tcp</a></p>
+<p><a href="http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=1.2.3.4&dstip=157.249.37.10&dstport=80&proto=tcp">http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=1.2.3.4&dstip=157.249.37.10&dstport=80&proto=tcp</a></p>
 <h5>Results</h5>
 <p>The results is a dictionary in JSON format with a boolean key called "permitted" that says whether the traffic was allowed or not. The dictionary will always contain the fields "firewall" and "accesslists" derived from the request. If the traffic is allowed, the dictionary will also contain the firewall rule that allowed the traffic and the comment associated with that rule in the firewall ruleset.</p>
 <p>Sample results of traffic that is permitted:</p>
