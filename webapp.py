@@ -62,7 +62,7 @@ def result_page():
         if not entry['result']['permitted']:
             permitted = False
         
-    return render_template('result.html', data=calls, permit=permitted)
+    return render_template('result.html', data=calls, permit=permitted, srcip=scrip, dstip=dstip, proto=proto, dstport=dstport)
 
 # Error handler
 @app.errorhandler(404)
