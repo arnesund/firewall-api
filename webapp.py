@@ -11,8 +11,6 @@ app = Flask(__name__)
 
 # Load config files outside repository
 sys.path.append('../')
-from subnets import subnets
-from graph import graph
 
 
 # Load accesslist-database
@@ -47,12 +45,12 @@ def result_page():
     # find_path(...)
     # ...
     # ...
-    get_url = 'http://localhost:5000/api/v1/destinations/{0}?srcip={1}'.format(dstip, srcip)
+    get_url = 'http://api.firewall.met.no/api/v1/destinations/{0}?srcip={1}'.format(dstip, srcip)
     path_output = requests.get(get_url)
     get_result = path_output.json()
     calls = []
     for parts in get_result['path']:
-        get_url = "http://localhost:5000/api/v1/firewalls/{0}/rules/{1}?srcip={2}&dstip={3}&proto={4}&dstport={5}".format(parts[0], parts[1], srcip, dstip, proto, dstport)
+        get_url = "http://api.firewall.met.no/api/v1/firewalls/{0}/rules/{1}?srcip={2}&dstip={3}&proto={4}&dstport={5}".format(parts[0], parts[1], srcip, dstip, proto, dstport)
         call_query = requests.get(get_url)
         call_result = call_query.json()
         calls.append(call_result)
