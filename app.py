@@ -27,6 +27,11 @@ except:
 
 #### HTML Endpoints ####
 
+# View main page with API Documentation
+@app.route('/')
+def index_page():
+    return render_template('apidocs.html')
+
 
 #### API Endpoints ####
 
