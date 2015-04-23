@@ -43,8 +43,6 @@ Firewall: <A HREF="http://rancid2/cgi-bin/cvsweb/network/configs/{{ entry['resul
 -in
 {% endif %}
 .met.no?rev=HEAD;content-type=text/plain">{{ entry['result']['firewall'] }}</A><br />
-
-Firewall: <A HREF="http://rancid2/cgi-bin/cvsweb/network/configs/{{ entry['result']['firewall'] }}.met.no?rev=HEAD;content-type=text/plain">{{ entry['result']['firewall'] }}</A><br />
 Access-list: {{ entry['result']['accesslist'] }}<br />
 {{ entry['result']['rulecomment'] }}<br />
 {{ entry['result']['firewallrule'] }}<br />
@@ -52,6 +50,12 @@ Access-list: {{ entry['result']['accesslist'] }}<br />
 {% else %}
 <p><div class="denied">DENIED</div>
 Firewall: <A HREF="http://rancid2/cgi-bin/cvsweb/network/configs/{{ entry['result']['firewall'] }}.met.no?rev=HEAD;content-type=text/plain">{{ entry['result']['firewall'] }}</A><br />
+Firewall: <A HREF="http://rancid2/cgi-bin/cvsweb/network/configs/{{ entry['result']['firewall'] }}
+{% if entry['result']['firewall'] == 'fw-main' %}
+-in
+{% endif %}
+.met.no?rev=HEAD;content-type=text/plain">{{ entry['result']['firewall'] }}</A><br />
+
 Access-list: {{ entry['result']['accesslist'] }}<br />
 </p>
 {% endif %}
