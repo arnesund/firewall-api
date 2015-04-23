@@ -16,8 +16,8 @@
 <td><INPUT NAME="srcip" TYPE="text" SIZE="15" maxlength="15" value="{{ srcip }}"></td>
 <td><INPUT NAME="dstip" TYPE="text" SIZE="15" maxlength="15" value="{{ dstip }}"></td>
 <td><INPUT NAME="dstport" TYPE="text" SIZE="5" maxlength="5" value="{{ dstport }}"></td>
-<td><input type="radio" name="proto" value="tcp" {% if proto == tcp %}checked{% endif %}>TCP</td>
-<td><input type="radio" name="proto" value="udp" {% if proto == udp %}checked{% endif %}>UDP</td>
+<td><input type="radio" name="proto" value="tcp" {% if proto == 'tcp' %}checked{% endif %}>TCP</td>
+<td><input type="radio" name="proto" value="udp" {% if proto == 'udp' %}checked{% endif %}>UDP</td>
 <td><INPUT TYPE="submit" value="Check"></td></tr>
 </table>
 
