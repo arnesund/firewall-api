@@ -87,7 +87,8 @@ for entry in results:
         print('PERMITTED:')
         print(' Firewall: ' + data['firewall'])
         print(' Access-list: ' + data['accesslist'])
-        print(' ' + data['rulecomment'])
+        for line in data['rulecomment'].split('\n'):
+          print(' ' + line)
         print(' ' + data['firewallrule'])
     else:
         print('DENIED:')
