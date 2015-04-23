@@ -15,13 +15,13 @@
 <h3>Destinations Endpoint</h3>
 <p>The Destinations endpoint is used to answer queries like "What firewalls and accesslists does the traffic pass from on the way to the destination?". Giving a destination IP and a source IP for the traffic, the API returns an ordered list of firewalls and accesslists that the traffic will be checked by.</p>
 <h4>Usage</h4>
-<h5>Parameters:</h5>
+<h5>Parameters</h5>
 <ul>
-<li>destination, an IPv4 address in dotted quad notation</li>
-<li>source, an IPv4 address in dotted quad notation</li>
+<li>destination, an IPv4 address in dotted quad notation (mandatory)</li>
+<li>source, an IPv4 address in dotted quad notation (mandatory)</li>
 </ul>
 <h5>Sample requests</h5>
-<p>http://api.firewall.met.no/api/v1/destinations/157.249.37.22?srcip=157.249.20.14</p>
+<p>http://api.firewall.met.no/api/v1/destinations/157.249.37.22?srcip=157.249.66.100</p>
 <p>http://api.firewall.met.no/api/v1/destinations/8.8.4.4?srcip=157.249.66.100</p>
 <h5>Results</h5>
 <p>The results is a list in JSON format with subelements consisting of the hostname of a firewall and the accesslist on that firewall that the traffic will be checked by. Please note that the list is ordered, so the traffic will first be checked by the first firewall, then the second, and so on.</p>
@@ -30,18 +30,56 @@
 {
   "path": [
     [
-      "fw-int", 
+      "fw1", 
       "inside-in"
     ], 
     [
-      "fw-main", 
+      "fw2", 
       "inside-in"
     ], 
     [
-      "fw-eklima", 
+      "fw3", 
       "outside-in"
     ]
   ]
 }
 </pre>
 <h3>Firewalls Endpoint</h3>
+<p>The Firewalls endpoint is used to check if the specified traffic will be permitted or denied by a certain accesslist on a certain firewall. The traffic to check must be specified using a source IP, destination IP, protocol and destination port number.
+<h4>Usage</h4>
+<h5>Parameters</h5>
+<ul>
+<li>firewall, a hostname as a string</li>
+<li>accesslist, a string (typically "outside-in" or "inside-in")</li>
+<li>destination, an IPv4 address in dotted quad notation</li>
+<li>source, an IPv4 address in dotted quad notation</li>
+<li>protocol, a string, either "tcp" or "udp"</li>
+<li>destination port, an integer</li>
+</ul>
+<h5>Sample requests</h5>
+<p>http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=100.200.30.40&dstip=157.249.37.22&dstport=80&proto=tcp</p>
+<p>http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=1.2.3.4&dstip=157.249.37.10&dstport=80&proto=tcp</p>
+<h5>Results</h5>
+<p>The results is a dictionary in JSON format with a boolean key called "permitted" that says whether the traffic was allowed or not. The dictionary will always contain the fields "firewall" and "accesslists" derived from the request. If the traffic is allowed, the dictionary will also contain the firewall rule that allowed the traffic and the comment associated with that rule in the firewall ruleset.</p>
+<p>Sample results of traffic that is permitted:</p>
+<pre>
+{
+  "result": {
+    "accesslist": "outside-in", 
+    "firewall": "fw-eklima", 
+    "firewallrule": "permit tcp 0.0.0.0/0 -> 157.249.37.22:[80]", 
+    "permitted": true, 
+    "rulecomment": "access-list outside-in remark ## Tilgang fra Internett til eKlima ##"
+  }
+}
+</pre>
+<p>Sample results of traffic that is denied:</p>
+<pre>
+{
+  "result": {
+    "accesslist": "outside-in", 
+    "firewall": "fw-eklima", 
+    "permitted": false
+  }
+}
+</pre>
