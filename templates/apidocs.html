@@ -49,12 +49,12 @@
 <h4>Usage</h4>
 <h5>Parameters</h5>
 <ul>
-<li>firewall, a hostname as a string</li>
-<li>accesslist, a string (typically "outside-in" or "inside-in")</li>
-<li>destination, an IPv4 address in dotted quad notation</li>
-<li>source, an IPv4 address in dotted quad notation</li>
-<li>protocol, a string, either "tcp" or "udp"</li>
-<li>destination port, an integer</li>
+<li>firewall, a hostname as a string (mandatory)</li>
+<li>accesslist, a string, typically "outside-in" or "inside-in" (mandatory)</li>
+<li>destination, an IPv4 address in dotted quad notation (mandatory)</li>
+<li>source, an IPv4 address in dotted quad notation (mandatory)</li>
+<li>protocol, a string, either "tcp" or "udp" (mandatory)</li>
+<li>destination port, an integer (mandatory)</li>
 </ul>
 <h5>Sample requests</h5>
 <p><a href="http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=100.200.30.40&dstip=157.249.37.22&dstport=80&proto=tcp">http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=100.200.30.40&dstip=157.249.37.22&dstport=80&proto=tcp</a></p>
