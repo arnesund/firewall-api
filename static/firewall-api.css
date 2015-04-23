@@ -7,6 +7,7 @@ FONT.f4 {color: #4DA5FF}
 FONT.f5 {color: #FF00FF}
 H4 {font-size:22;padding:0 3 0 3; border:0 0 0 0;border-bottom:0;}
 H1 {font-size:18;background-color:#1C8AAE;padding:0 0 0 10; border: 5 5 5 5; color:#fff; margin: 0 0 0 0;}
+H1.black {font-size:18;background-color:#1C8AAE;padding:0 0 0 10; border: 5 5 5 5; color:#fff; margin: 0 0 0 0;}
 H2 {font-size:12;}
 H3 {font-size:18;background-color:#1C8AAE;padding:0 0 0 10; border: 5 5 5 5; color:#fff; margin: 0 0 0 0;}
 H4 {font-size:18;text-decoration: none; background-color:#1C8AAE;padding:0 0 0 10; border: 5 5 5 5; color:#C00000; margin: 0 0 0 0;}
