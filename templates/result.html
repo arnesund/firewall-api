@@ -37,12 +37,12 @@
 {% if entry['result']['permitted'] %}
 <p><div class="permitted">PERMITTED</div>
 
+
+Firewall: <A HREF="http://rancid2/cgi-bin/cvsweb/network/configs/{{ entry['result']['firewall'] }}
 {% if entry['result']['firewall'] == 'fw-main' %}
-
-Test OK
-
+-in
 {% endif %}
-
+.met.no?rev=HEAD;content-type=text/plain">{{ entry['result']['firewall'] }}</A><br />
 
 Firewall: <A HREF="http://rancid2/cgi-bin/cvsweb/network/configs/{{ entry['result']['firewall'] }}.met.no?rev=HEAD;content-type=text/plain">{{ entry['result']['firewall'] }}</A><br />
 Access-list: {{ entry['result']['accesslist'] }}<br />
