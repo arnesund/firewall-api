@@ -116,6 +116,7 @@ def main(configfile, verbose):
                 if line.split()[1] == title:
                     contents = ' '.join(line.split()[2:])
                     contents = contents.replace('"', '')
+                    contents = contents.replace(' ', '/')
                     #print contents
                     policy[index] = contents
                     
