@@ -11,13 +11,14 @@ import requests
 APISERVER='http://api.firewall.met.no/api/v1'
 
 # Command line option parsing info
-usage = '%prog [-h|--help] [-s|--srcip SOURCE-IP] [-d|--dstip DESTINATION-IP] [--proto PROTOCOL] [-p|--dstport DESTIONATION-PORT]'
-description = """Check if the firewalls allow specified traffic"""
+usage = '%prog [-h|--help] [-q|--quiet] [-s|--srcip SOURCE-IP] [-d|--dstip DESTINATION-IP] [--proto PROTOCOL] [-p|--dstport DESTIONATION-PORT]'
+description = """Check if the firewalls allow specified traffic. Returns non-zero exit code if traffic is denied."""
 epilog = 'Author: Arne Sund'
 version = '%prog 1.0'
 
 # Initialize command line parsing
 p = optparse.OptionParser(usage=usage, version=version, description=description, epilog=epilog)
+p.add_option('-q', "--quiet", action="store_false", dest="verbose", default=True, help='Suppress all output (except errors) and return only exit code')
 p.add_option('-s', "--srcip", dest='srcip', metavar="SOURCE-IP", help='Source IP address (required)')
 p.add_option('-d', "--dstip", dest='dstip', metavar="DESTINATION-IP", help='Destination IP address (required)')
 p.add_option("--proto", dest='proto', metavar="PROTOCOL", help='Protocol: TCP or UDP (required)')
@@ -74,25 +75,28 @@ for entry in results:
     if not entry['result']['permitted']:
         permitted = False
 
-print('')
-if permitted:
-    print('Traffic is PERMITTED through the firewalls!')
-else:
-    print('Traffic is DENIED by at least one of the firewalls!')
-print('')
-
-for entry in results:
-    data = entry['result']
-    if data['permitted']:
-        print('PERMITTED:')
-        print(' Firewall: ' + data['firewall'])
-        print(' Access-list: ' + data['accesslist'])
-        for line in data['rulecomment'].split('\n'):
-          print(' ' + line)
-        print(' ' + data['firewallrule'])
+if options.verbose:
+    print('')
+    if permitted:
+        print('Traffic is PERMITTED through the firewalls!')
     else:
-        print('DENIED:')
-        print(' Firewall: ' + data['firewall'])
-        print(' Access-list: ' + data['accesslist'])
+        print('Traffic is DENIED by at least one of the firewalls!')
     print('')
 
+    for entry in results:
+        data = entry['result']
+        if data['permitted']:
+            print('PERMITTED:')
+            print(' Firewall: ' + data['firewall'])
+            print(' Access-list: ' + data['accesslist'])
+            for line in data['rulecomment'].split('\n'):
+              print(' ' + line)
+            print(' ' + data['firewallrule'])
+        else:
+            print('DENIED:')
+            print(' Firewall: ' + data['firewall'])
+            print(' Access-list: ' + data['accesslist'])
+        print('')
+
+if not permitted:
+    sys.exit(1)
