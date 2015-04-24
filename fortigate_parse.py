@@ -80,50 +80,94 @@ def main(configfile, verbose):
         logging.exception('Unable to get file modification time of config file. Reason: {0}'.format(e))
         sys.exit(1)
     
-    # Policy storage
-    policy = {}
+    # Object storage in memory
+    obj = {}
 
+    # Track current element ID
+    elem = False
 
-    # Parse config file to extract all access-lists
-    # Track state and current element ID
-    index = False
-    in_policy = False  
-    maps = {}  
-    object_name = ""
+    # Track state
+    section = False
+
+    # Parse config file to extract all accesslists, addresses and addressgroups
     for line in open(configfile, 'r').readlines():
         line = line.strip()
-        if line == 'config firewall address':
-            in_policy = True
-        if in_policy and line == 'end':
-            in_policy = False
-        if not in_policy:
+
+        # Track where in config file we are
+        if line == 'config firewall policy':
+            section = 'policy'
+            obj[section] = {}
+        elif line == 'config firewall address':
+            section = 'addr'
+            obj[section] = {}
+        elif line == 'config firewall addrgrp':
+            section = 'addrgrp'
+            obj[section] = {}
+        elif line == 'config firewall service custom':
+            section = 'service'
+            obj[section] = {}
+
+        # Detect end of config section
+        if section and line == 'end':
+            section = False
+
+        # Skip all other parts of config
+        if not section:
             # Skip line
             continue
         
+        # Detect new objects and initialize storage
         if line[:4] == 'edit':
-            match = re.search(r'edit \"([^\"]*)\"', line)
+            match = re.search(r'edit (.*)', line)
             if match:
-                index = str(match.groups()[0])
-                policy[index] = {}
-                #print index
-                
+                elem = str(match.groups()[0])
+                elem = elem.replace('"', '')
+                obj[section][elem] = {}
         
         elif line == 'next':
-            index = False
+            elem = False
         
-        elif line[:3] == 'set' and index:
-            for title in ['subnet']:
-                if line.split()[1] == title:
-                    contents = ' '.join(line.split()[2:])
-                    contents = contents.replace('"', '')
-                    contents = contents.replace(' ', '/')
-                    #print contents
-                    policy[index] = contents
-                    
-                    break
+        # Detect object contents
+        elif line[:3] == 'set' and elem:
+            # Parse address objects
+            if section == 'addr':
+                for title in ['type', 'comment', 'subnet', 'start-ip', 'end-ip']:
+                    if line.split()[1] == title:
+                        contents = ' '.join(line.split()[2:])
+                        contents = contents.replace('"', '')
+                        contents = contents.replace(' ', '/')
+                        obj[section][elem][title] = contents
+                        break
 
-        
-    pprint(policy)
+            # Parse address-group objects
+            if section == 'addrgrp':
+                for title in ['comment', 'member']:
+                    if line.split()[1] == title:
+                        contents = ' '.join(line.split()[2:])
+                        contents = contents.replace('"', '')
+                        obj[section][elem][title] = contents
+                        break
+
+            # Parse policy objects
+            elif section == 'policy':
+                for title in ['srcintf', 'dstintf', 'srcaddr', 'dstaddr', 'action', 'status', 'service', 'comments', 'global-label']:
+                    if line.split()[1] == title:
+                        contents = ' '.join(line.split()[2:])
+                        contents = contents.replace('"', '')
+                        obj[section][elem][title] = contents
+                        break
+
+            # Parse service objects
+            if section == 'service':
+                for title in ['category', 'protocol', 'comment', 'protocol-number', 'tcp-portrange', 'udp-portrange']:
+                    if line.split()[1] == title:
+                        contents = ' '.join(line.split()[2:])
+                        contents = contents.replace('"', '')
+                        obj[section][elem][title] = contents
+                        break
+
+    # Debug print
+    pprint(obj)
 
 if __name__ == '__main__':
     prog = os.path.basename(sys.argv[0])
