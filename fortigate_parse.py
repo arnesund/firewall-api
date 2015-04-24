@@ -12,7 +12,7 @@ import optparse
 from IPy import IP
 from pprint import pprint
 from datetime import datetime
-from ciscoconfparse import CiscoConfParse
+from firewallrule import FirewallRule
 
 CONFIGFILE = 'config.py'
 
@@ -25,6 +25,62 @@ except:
     sys.stderr.write('Unable to load config file ({0})! Aborting.\n'.format(CONFIGFILE))
     sys.exit(1)
 
+
+def expand_addr(entry, obj, verbose):
+    if verbose > 1:
+        print('Expanding address {}...'.format(entry))
+
+    res = []
+    for name in entry.split(' '):
+        if name in obj['addr']:
+            if 'subnet' in obj['addr'][name]:
+                res.append(obj['addr'][name]['subnet'])
+            else:
+                sys.stderr.write('Unable to expand address "{}" to a subnet. Skipping it.\n'.format(name))
+        else:
+            # Must be an address group, expand it recursively
+            for member in obj['addrgrp'][name]['member'].split(' '):
+                res = res + expand_addr(member, obj, verbose)
+
+    return res
+
+
+def parse_fg_policy_entry(entry, obj, verbose):
+    '''
+    Parse a policy entry in FortiGate syntax and return FirewallRule objects representing the policy entry.
+
+    Args:
+        entry: Dictionary representing the policy entry as found in the config.
+        obj: Dictionary with all address and service objects found in the config.
+        verbose: Debug level as integer, where zero is no debugging, 1 is some debugging and >1 is all.
+
+    Returns:
+        List of FirewallRule objects (one or more).
+
+    Throws:
+        ValueError if unable to parse input.
+    '''
+
+    # List of FirewallRule objects to return
+    res = []
+
+    if verbose:
+        print('parse_fg_policy_entry: Processing the following entry...')
+        pprint(entry)
+
+    data = {}
+    data['srcaddr'] = []
+    data['dstaddr'] = []
+    for key in data.keys():
+        if key.find('addr'):
+            for part in entry[key].split(' '):
+                data[key] = data[key] + expand_addr(part, obj, verbose)
+
+    if verbose:
+        pprint(data)
+        print('')
+
+
 def main(configfile, verbose):
     # Initialize data structures
     networkgroups = {}
@@ -36,8 +92,6 @@ def main(configfile, verbose):
     try:
         # Name-number mappings
         db = shelve.open(shelvefile)
-        name2num = db['cisco_port_name_to_number']
-        num2name = db['cisco_port_number_to_name']
         icmptype2num = db['icmp_type_name_to_number']
         db.close()
     except KeyError as e:
@@ -153,21 +207,25 @@ def main(configfile, verbose):
                 contents = contents.replace(' ', '/')
                 obj[section][elem][title] = contents
 
+    if verbose > 1:
+        # Debug print
+        pprint(obj)
 
-    # Debug print
-    pprint(obj)
+    # Postprocess policy entries to FirewallRule objects
+    for policy_id in obj['policy'].keys():
+        parse_fg_policy_entry(obj['policy'][policy_id], obj, verbose)
 
 
 if __name__ == '__main__':
     prog = os.path.basename(sys.argv[0])
     usage = """%prog [-h] [-v] [-v] -f <firewall config file>"""
-    description = """%prog processes a Cisco firewall config file to extract access-lists, object groups and other relevant info used by the RulesetAnalysis Hadoop jobs."""
-    epilog = "2013 - Arne Sund"
+    description = """%prog processes a FortiGate firewall config file to extract accesslists, address objects, service objects and other relevant info. Each policy is saved as a FirewallRule object in a shelve database."""
+    epilog = "2015 - Arne Sund"
     version = "%prog 1.0"
 
     p = optparse.OptionParser(usage=usage, version=version, description=description, epilog=epilog)
     p.add_option('-v', "--verbose", dest='verbose', action='count', default=0, help='turn on verbose output, apply twice for debug')
-    p.add_option('-f', help="Cisco firewall config file", metavar="FILE")
+    p.add_option('-f', help="FortiGate firewall config file", metavar="FILE")
     o, args = p.parse_args()
 
     # Determine log level from verbose flag
