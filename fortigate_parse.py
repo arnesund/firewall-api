@@ -10,6 +10,7 @@ import shelve
 import logging
 import optparse
 from IPy import IP
+from pprint import pprint
 from datetime import datetime
 from ciscoconfparse import CiscoConfParse
 
@@ -121,7 +122,7 @@ def main(configfile, verbose):
                     break
 
         
-    print policy
+    pprint(policy)
 
 if __name__ == '__main__':
     prog = os.path.basename(sys.argv[0])
