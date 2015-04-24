@@ -89,6 +89,14 @@ def main(configfile, verbose):
     # Track state
     section = False
 
+    # Configure interesting parts of each object
+    titles = {}
+    titles['policy'] = ['srcintf', 'dstintf', 'srcaddr', 'dstaddr', 'action', 'status', 'service', 'comments', 'global-label']
+    titles['addr'] = ['type', 'comment', 'subnet', 'start-ip', 'end-ip']
+    titles['addrgrp'] = ['comment', 'member']
+    titles['service'] = ['category', 'protocol', 'comment', 'protocol-number', 'tcp-portrange', 'udp-portrange', 'icmptype', 'icmpcode']
+    titles['srvcgrp'] = ['comment', 'member']
+
     # Parse config file to extract all accesslists, addresses and addressgroups
     for line in open(configfile, 'r').readlines():
         line = line.strip()
@@ -105,6 +113,9 @@ def main(configfile, verbose):
             obj[section] = {}
         elif line == 'config firewall service custom':
             section = 'service'
+            obj[section] = {}
+        elif line == 'config firewall service group':
+            section = 'srvcgrp'
             obj[section] = {}
 
         # Detect end of config section
@@ -129,45 +140,23 @@ def main(configfile, verbose):
         
         # Detect object contents
         elif line[:3] == 'set' and elem:
-            # Parse address objects
-            if section == 'addr':
-                for title in ['type', 'comment', 'subnet', 'start-ip', 'end-ip']:
-                    if line.split()[1] == title:
-                        contents = ' '.join(line.split()[2:])
-                        contents = contents.replace('"', '')
-                        contents = contents.replace(' ', '/')
-                        obj[section][elem][title] = contents
-                        break
+            for title in titles[section]:
+                if line.split()[1] == title:
+                    contents = ' '.join(line.split()[2:])
+                    contents = contents.replace('"', '')
+                    obj[section][elem][title] = contents
+                    break
 
-            # Parse address-group objects
-            if section == 'addrgrp':
-                for title in ['comment', 'member']:
-                    if line.split()[1] == title:
-                        contents = ' '.join(line.split()[2:])
-                        contents = contents.replace('"', '')
-                        obj[section][elem][title] = contents
-                        break
+            # Convert space to slash in address objects
+            if section == 'addr' and line.split()[1] == 'subnet':
+                contents = obj[section][elem][title]
+                contents = contents.replace(' ', '/')
+                obj[section][elem][title] = contents
 
-            # Parse policy objects
-            elif section == 'policy':
-                for title in ['srcintf', 'dstintf', 'srcaddr', 'dstaddr', 'action', 'status', 'service', 'comments', 'global-label']:
-                    if line.split()[1] == title:
-                        contents = ' '.join(line.split()[2:])
-                        contents = contents.replace('"', '')
-                        obj[section][elem][title] = contents
-                        break
-
-            # Parse service objects
-            if section == 'service':
-                for title in ['category', 'protocol', 'comment', 'protocol-number', 'tcp-portrange', 'udp-portrange']:
-                    if line.split()[1] == title:
-                        contents = ' '.join(line.split()[2:])
-                        contents = contents.replace('"', '')
-                        obj[section][elem][title] = contents
-                        break
 
     # Debug print
     pprint(obj)
+
 
 if __name__ == '__main__':
     prog = os.path.basename(sys.argv[0])
