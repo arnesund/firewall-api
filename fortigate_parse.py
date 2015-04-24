@@ -71,12 +71,13 @@ def parse_fg_policy_entry(entry, obj, verbose):
     data = {}
     data['srcaddr'] = []
     data['dstaddr'] = []
-    for key in data.keys():
-        if key.find('addr'):
+    for key in entry.keys():
+        if key.find('addr') != -1:
             for part in entry[key].split(' '):
                 data[key] = data[key] + expand_addr(part, obj, verbose)
 
     if verbose:
+        print('Parsed fields:')
         pprint(data)
         print('')
 
