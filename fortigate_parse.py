@@ -45,6 +45,61 @@ def expand_addr(entry, obj, verbose):
     return res
 
 
+def expand_service(entry, obj, verbose):
+    if verbose > 1:
+        print('Expanding service {}...'.format(entry))
+
+    res = []
+    data = {}
+
+    if entry in obj['service']:
+        o = obj['service'][entry]
+        if o['protocol'] == 'TCP/UDP/SCTP':
+            for key in ['tcp-portrange', 'udp-portrange']:
+                if key in o:
+                    # Valid syntax includes '53', '161-162' and '19100 19300 19400' for destination port only,
+                    # and '15003:15002' + '514:512-1023' for dstport:srcport, respectively
+
+                    protocol = key[:3]
+                    data['src'] = False
+                    data['dst'] = False
+
+                    if o[key].find(':') != -1:
+                        # Both source and destination port
+                        data['dst'], data['src'] = o[key].split(':')
+                    else:
+                        data['dst'] = o[key]
+                    
+                    for direction in ['src', 'dst']:
+                        if data[direction]:
+                            if data[direction].find('-') != -1:
+                                # Port range
+                                start, end = data[direction].split('-')
+                                for i in xrange(int(start), int(end)):
+                                    print('Found {} {} port {} for entry {}'.format(protocol, direction, i, entry))
+                            elif data[direction].find(' ') != -1:
+                                # List of ports, space-delimited
+                                data[direction] = data[direction].split(' ')
+                                print('Found {} {} ports {} for entry {}'.format(protocol, direction, data[direction], entry))
+                            else:
+                                # Single port
+                                print('Found {} {} port {} for entry {}'.format(protocol, direction, data[direction], entry))
+
+        elif o['protocol'] == 'ICMP':
+            print 'TODO: Handle ICMP...'
+
+        else:
+            sys.stderr.write('Unknown protocol {} in service object {}, skipping it.\n'.format(o['protocol'], entry))
+
+    elif entry in obj['srvcgrp']:
+        # Expand service group recursively
+        for member in obj['srvcgrp'][entry]['member'].split(' '):
+            res = res + expand_service(member, obj, verbose)
+
+    # Return list of services
+    return res
+
+
 def parse_fg_policy_entry(entry, obj, verbose):
     '''
     Parse a policy entry in FortiGate syntax and return FirewallRule objects representing the policy entry.
