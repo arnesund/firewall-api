@@ -198,7 +198,8 @@ def testcases():
 
     # Test cases
     tests = [ (rule2, rule1, True), (rule2, rule3, True), (rule3, rule2, False),
-              (conn1, rule4, True), (conn2, rule4, False), (conn3, rule4, False), (conn4, rule4, False)
+              (conn1, rule4, True), (conn2, rule4, False), (conn3, rule4, False), (conn4, rule4, False),
+              (icmp1, icmp2, True)
             ]
 
     # Run all tests and report failed ones, if any
