@@ -14,12 +14,12 @@ class FirewallRule:
         protocol: String - Protocol name. All names are lowercased.
         original: String - Firewall rule in the native format of the firewall in question.
         src: String - IP address or network. Input is saved as an IP object.
-        sport: List of Integers - Source ports.
         dst: String - IP address or network. Input is saved as an IP object.
-        dport: List of Integers - Destination ports.
-        comments: List of Strings describing the firewall rule.
-        rulenum: Integer - Index of the original rule in the access-list it belongs to.
-        ruleindex: Integer - Index of the expanded rule in the access-list structure.
+        sport: List of Integers - Source ports. (Optional)
+        dport: List of Integers - Destination ports. (Optional)
+        comments: List of Strings describing the firewall rule. (Optional)
+        rulenum: Integer - Index of the original rule in the access-list it belongs to. (Optional)
+        ruleindex: Integer - Index of the expanded rule in the access-list structure. (Optional)
 
     NOTE: The integer -1 is used as port number to indicate 'No port number'.
     '''
