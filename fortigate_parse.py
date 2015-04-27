@@ -9,6 +9,7 @@ import sys
 import shelve
 import logging
 import optparse
+import socket
 from IPy import IP
 from pprint import pprint
 from datetime import datetime
@@ -36,6 +37,17 @@ def expand_addr(entry, obj, verbose):
         if name in obj['addr']:
             if 'subnet' in obj['addr'][name]:
                 res.append(obj['addr'][name]['subnet'])
+            elif 'fqdn' in obj['addr'][name]:
+                fqdn = obj['addr'][name]['fqdn'].replace('"', '')
+                ip_lookup = None
+                try:
+                    ip_lookup = socket.gethostbyname_ex(fqdn)
+                except:
+                    sys.stderr.write('Unable to lookup {0}. Skipping it. \n'.format(fqdn))
+                if ip_lookup:
+                    res = res + ip_lookup[2]
+                    print res
+                
             else:
                 sys.stderr.write('Unable to expand address "{}" to a subnet. Skipping it.\n'.format(name))
         else:
@@ -231,7 +243,7 @@ def main(configfile, verbose):
     # Configure interesting parts of each object
     titles = {}
     titles['policy'] = ['srcintf', 'dstintf', 'srcaddr', 'dstaddr', 'action', 'status', 'service', 'comments', 'global-label']
-    titles['addr'] = ['type', 'comment', 'subnet', 'start-ip', 'end-ip']
+    titles['addr'] = ['type', 'comment', 'subnet', 'start-ip', 'end-ip', 'fqdn']
     titles['addrgrp'] = ['comment', 'member']
     titles['service'] = ['category', 'protocol', 'comment', 'protocol-number', 'tcp-portrange', 'udp-portrange', 'icmptype', 'icmpcode']
     titles['srvcgrp'] = ['comment', 'member']
