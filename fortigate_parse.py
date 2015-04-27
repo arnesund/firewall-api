@@ -90,10 +90,15 @@ def expand_service(entry, obj, verbose):
                             if data[direction].find('-') != -1:
                                 # Port range
                                 start, end = data[direction].split('-')
-                                for port in xrange(int(start), int(end)):
-                                    if verbose > 1:
-                                        print('Found {} {} port {} for entry {}'.format(protocol, direction, port, entry))
-                                    data[direction + 'obj'].append({'protocol': protocol, 'port': port, 'direction': direction})
+
+                                # Handle exception
+                                if int(start) == 1 and int(end) == 65535:
+                                    data[direction + 'obj'].append({'protocol': protocol, 'port': FirewallRule.NO_PORT, 'direction': direction})
+                                else:
+                                    for port in xrange(int(start), int(end)+1):
+                                        if verbose > 1:
+                                            print('Found {} {} port {} for entry {}'.format(protocol, direction, port, entry))
+                                        data[direction + 'obj'].append({'protocol': protocol, 'port': port, 'direction': direction})
 
                             elif data[direction].find(' ') != -1:
                                 # List of ports, space-delimited
@@ -176,6 +181,41 @@ def parse_fg_policy_entry(entry, obj, verbose):
         print('Parsed fields:')
         pprint(data)
         print('')
+
+    for src in data['srcaddr']:
+        for dst in data['dstaddr']:
+            for svc in data['service']:
+                # Build comment and original access-list line
+                p = entry
+                original = 'access-list {}-in {} {} to {} service {}'.format(p['srcintf'].lower(), p['action'], p['srcaddr'], 
+                                                             p['dstaddr'], p['service'])
+                original = original.replace('"', '')
+                original = original.replace('accept', 'permit')
+                
+                if p['comments'] != "''":
+                    comment = 'access-list {}-in remark {}: {}'.format(p['srcintf'].lower(), p['global-label'], p['comments'])
+                else:
+                    comment = 'access-list {}-in remark {}'.format(p['srcintf'].lower(), p['global-label'])
+                comment = comment.replace('"', '')
+
+                if entry['action'] == 'accept':
+                    permit = True
+                else:
+                    permit = False
+
+                rule = None
+                try:
+                    if svc['protocol'] in ['tcp', 'udp']:
+                        rule = FirewallRule(permit, svc['protocol'], original, src, dst, svc['srcport'], svc['dstport'], comment, entry['policy_id'])
+                    else:
+                        rule = FirewallRule(permit, svc['protocol'], original, src, dst, FirewallRule.NO_PORT, FirewallRule.NO_PORT, comment, entry['policy_id'])
+                except ValueError, e:
+                    raise
+                
+                if rule:
+                    res.append(rule)
+
+    return res
 
 
 def main(configfile, verbose):
@@ -311,9 +351,15 @@ def main(configfile, verbose):
 
     # Postprocess policy entries to FirewallRule objects
     for policy_id in obj['policy'].keys():
-        print('Parsing entry {}'.format(policy_id))
-        parse_fg_policy_entry(obj['policy'][policy_id], obj, verbose)
+        if obj['policy'][policy_id]['status'] == 'enable':
+            print('Parsing entry {}'.format(policy_id))
+            obj['policy'][policy_id]['policy_id'] = policy_id
+            rules = parse_fg_policy_entry(obj['policy'][policy_id], obj, verbose)
 
+        for rule in rules:
+            print(str(rule))
+            print(rule.comments)
+            print(rule.original)
 
 if __name__ == '__main__':
     prog = os.path.basename(sys.argv[0])
