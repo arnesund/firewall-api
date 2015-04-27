@@ -31,7 +31,8 @@ def expand_addr(entry, obj, verbose):
         print('Expanding address {}...'.format(entry))
 
     res = []
-    for name in entry.split(' '):
+    for match in re.finditer(r'(\".*?\")', entry):
+        name = match.groups()[0]
         if name in obj['addr']:
             if 'subnet' in obj['addr'][name]:
                 res.append(obj['addr'][name]['subnet'])
@@ -39,8 +40,8 @@ def expand_addr(entry, obj, verbose):
                 sys.stderr.write('Unable to expand address "{}" to a subnet. Skipping it.\n'.format(name))
         else:
             # Must be an address group, expand it recursively
-            for member in obj['addrgrp'][name]['member'].split(' '):
-                res = res + expand_addr(member, obj, verbose)
+            for member in re.finditer(r'(\".*?\")', obj['addrgrp'][name]['member']):
+                res = res + expand_addr(member.groups()[0], obj, verbose)
 
     return res
 
@@ -128,8 +129,8 @@ def parse_fg_policy_entry(entry, obj, verbose):
     data['dstaddr'] = []
     for key in entry.keys():
         if key.find('addr') != -1:
-            for part in entry[key].split(' '):
-                data[key] = data[key] + expand_addr(part, obj, verbose)
+            for match in re.finditer(r'(\".*?\")', entry[key]):
+                data[key] = data[key] + expand_addr(match.groups()[0], obj, verbose)
 
     if verbose:
         print('Parsed fields:')
@@ -242,7 +243,6 @@ def main(configfile, verbose):
             match = re.search(r'edit (.*)', line)
             if match:
                 elem = str(match.groups()[0])
-                elem = elem.replace('"', '')
                 obj[section][elem] = {}
         
         elif line == 'next':
@@ -253,7 +253,6 @@ def main(configfile, verbose):
             for title in titles[section]:
                 if line.split()[1] == title:
                     contents = ' '.join(line.split()[2:])
-                    contents = contents.replace('"', '')
                     obj[section][elem][title] = contents
                     break
 
