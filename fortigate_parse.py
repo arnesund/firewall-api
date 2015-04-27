@@ -51,7 +51,6 @@ def expand_service(entry, obj, verbose):
         print('Expanding service {}...'.format(entry))
 
     res = []
-    data = {}
 
     if entry in obj['service']:
         o = obj['service'][entry]
@@ -62,8 +61,11 @@ def expand_service(entry, obj, verbose):
                     # and '15003:15002' + '514:512-1023' for dstport:srcport, respectively
 
                     protocol = key[:3]
+                    data = {}
                     data['src'] = False
                     data['dst'] = False
+                    data['srcobj'] = []
+                    data['dstobj'] = []
 
                     if o[key].find(':') != -1:
                         # Both source and destination port
@@ -76,18 +78,39 @@ def expand_service(entry, obj, verbose):
                             if data[direction].find('-') != -1:
                                 # Port range
                                 start, end = data[direction].split('-')
-                                for i in xrange(int(start), int(end)):
-                                    print('Found {} {} port {} for entry {}'.format(protocol, direction, i, entry))
+                                for port in xrange(int(start), int(end)):
+                                    if verbose > 1:
+                                        print('Found {} {} port {} for entry {}'.format(protocol, direction, port, entry))
+                                    data[direction + 'obj'].append({'protocol': protocol, 'port': port, 'direction': direction})
+
                             elif data[direction].find(' ') != -1:
                                 # List of ports, space-delimited
-                                data[direction] = data[direction].split(' ')
-                                print('Found {} {} ports {} for entry {}'.format(protocol, direction, data[direction], entry))
+                                for port in data[direction].split(' '):
+                                    if verbose > 1:
+                                        print('Found {} {} port {} for entry {}'.format(protocol, direction, port, entry))
+                                    data[direction + 'obj'].append({'protocol': protocol, 'port': port, 'direction': direction})
+
                             else:
                                 # Single port
-                                print('Found {} {} port {} for entry {}'.format(protocol, direction, data[direction], entry))
+                                if verbose > 1:
+                                    print('Found {} {} port {} for entry {}'.format(protocol, direction, data[direction], entry))
+                                data[direction + 'obj'].append({'protocol': protocol, 'port': data[direction], 'direction': direction})
+
+                    if data['src']:
+                        for src in data['srcobj']:
+                            for dst in data['dstobj']:
+                                res.append({'protocol': dst['protocol'], 'srcport': src['port'], 'dstport': dst['port']})
+
+                    else:
+                        for dst in data['dstobj']:
+                            res.append({'protocol': dst['protocol'], 'srcport': FirewallRule.NO_PORT, 'dstport': dst['port']})
+
 
         elif o['protocol'] == 'ICMP':
-            print 'TODO: Handle ICMP...'
+            res.append({'protocol': o['protocol']})
+
+        elif o['protocol'] == 'IP':
+            res.append({'protocol': o['protocol']})
 
         else:
             sys.stderr.write('Unknown protocol {} in service object {}, skipping it.\n'.format(o['protocol'], entry))
@@ -131,6 +154,11 @@ def parse_fg_policy_entry(entry, obj, verbose):
         if key.find('addr') != -1:
             for match in re.finditer(r'(\".*?\")', entry[key]):
                 data[key] = data[key] + expand_addr(match.groups()[0], obj, verbose)
+
+    if 'service' in entry:
+        data['service'] = []
+        for part in entry['service'].split(' '):
+            data['service'] = data['service'] + expand_service(part, obj, verbose)
 
     if verbose:
         print('Parsed fields:')
@@ -228,6 +256,9 @@ def main(configfile, verbose):
         elif line == 'config firewall service group':
             section = 'srvcgrp'
             obj[section] = {}
+        elif line == 'config router setting':
+            section = 'router'
+            obj[section] = {}
 
         # Detect end of config section
         if section and line == 'end':
@@ -268,6 +299,7 @@ def main(configfile, verbose):
 
     # Postprocess policy entries to FirewallRule objects
     for policy_id in obj['policy'].keys():
+        print('Parsing entry {}'.format(policy_id))
         parse_fg_policy_entry(obj['policy'][policy_id], obj, verbose)
 
 
