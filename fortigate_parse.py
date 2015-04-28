@@ -279,6 +279,11 @@ def main(configfile, verbose):
 
     # Track state
     section = False
+    
+    # Container for accesslists
+    accesslists = {}
+    # Container for mapping of protocol to rules
+    proto2rule = {}
 
     # Configure interesting parts of each object
     titles = {}
@@ -350,18 +355,11 @@ def main(configfile, verbose):
                 contents = obj[section][elem][title]
                 contents = contents.replace('"', '')
                 obj[section][elem][title] = contents
-    print obj['router']['hostname']
-    if verbose > 1:
-        # Debug print
-        pprint(obj)
+    
     # Postprocess policy entries to FirewallRule objects
-    accesslists = {}
-    proto2rule = {}
     for policy_id in obj['policy'].keys():
         if obj['policy'][policy_id]['status'] == 'enable':
             acl = ""
-            
-            #print('Parsing entry {}'.formobj['policy'][policy_id]['srcintf']at(policy_id))
             if obj['policy'][policy_id]['srcintf'] == '"Outside"':
                 acl = "outside-in"
             elif obj['policy'][policy_id]['srcintf'] == '"Inside"' or obj['policy'][policy_id]['srcintf'] == '"Guest-Inside"':
@@ -370,11 +368,11 @@ def main(configfile, verbose):
                 accesslists[acl] = []
             obj['policy'][policy_id]['policy_id'] = policy_id
             accesslists[acl] = accesslists[acl] + parse_fg_policy_entry(obj['policy'][policy_id], obj, verbose)
+
+    # Prosses accesslists to map protocol to rules
     for acl in accesslists:
         for rule in accesslists[acl]:
             ruleindex = accesslists[acl].index(rule)
-            #print ruleindex
-            #print rule.protocol
             accesslists[acl][ruleindex].ruleindex = ruleindex
             if acl not in proto2rule:
                 proto2rule[acl] = {}
@@ -382,10 +380,10 @@ def main(configfile, verbose):
                 proto2rule[acl][rule.protocol] = [ruleindex]
             else:
                 proto2rule[acl][rule.protocol].append(ruleindex)
-    #print proto2rule
-    
 
-
+    # Debug print            
+    if verbose > 1:        
+        pprint(obj)    
     
 if __name__ == '__main__':
     prog = os.path.basename(sys.argv[0])
