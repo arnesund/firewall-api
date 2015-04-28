@@ -124,10 +124,10 @@ def expand_service(entry, obj, verbose):
 
 
         elif o['protocol'] == 'ICMP':
-            res.append({'protocol': o['protocol']})
+            res.append({'protocol': o['protocol'].lower()})
 
         elif o['protocol'] == 'IP':
-            res.append({'protocol': o['protocol']})
+            res.append({'protocol': o['protocol'].lower()})
 
         else:
             sys.stderr.write('Unknown protocol {} in service object {}, skipping it.\n'.format(o['protocol'], entry))
