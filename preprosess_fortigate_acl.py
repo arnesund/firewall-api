@@ -205,9 +205,9 @@ def parse_fg_policy_entry(entry, obj, verbose):
                 rule = None
                 try:
                     if svc['protocol'] in ['tcp', 'udp']:
-                        rule = FirewallRule(permit, svc['protocol'], original, src, dst, svc['srcport'], svc['dstport'], comment, entry['policy_id'])
+                        rule = FirewallRule(permit, svc['protocol'], original, src, dst, svc['srcport'], svc['dstport'], [comment], entry['policy_id'])
                     else:
-                        rule = FirewallRule(permit, svc['protocol'], original, src, dst, FirewallRule.NO_PORT, FirewallRule.NO_PORT, comment, entry['policy_id'])
+                        rule = FirewallRule(permit, svc['protocol'], original, src, dst, FirewallRule.NO_PORT, FirewallRule.NO_PORT, [comment], entry['policy_id'])
                 except ValueError, e:
                     raise
                 
