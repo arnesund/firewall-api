@@ -46,7 +46,6 @@ def expand_addr(entry, obj, verbose):
                     sys.stderr.write('Unable to lookup {0}. Skipping it. \n'.format(fqdn))
                 if ip_lookup:
                     res = res + ip_lookup[2]
-                    #print res
                 
             else:
                 sys.stderr.write('Unable to expand address "{}" to a subnet. Skipping it.\n'.format(name))
@@ -359,8 +358,6 @@ def main(configfile, verbose):
                 obj[section][elem][title] = contents
 
     
-    print obj['router']['hostname']
-    
     # Postprocess policy entries to FirewallRule objects
     for policy_id in obj['policy'].keys():
         if obj['policy'][policy_id]['status'] == 'enable':
@@ -374,7 +371,7 @@ def main(configfile, verbose):
             obj['policy'][policy_id]['policy_id'] = policy_id
             accesslists[acl] = accesslists[acl] + parse_fg_policy_entry(obj['policy'][policy_id], obj, verbose)
 
-    # Prosses accesslists to map protocol to rules
+    # Process accesslist rules to map protocol to rule IDs
     for acl in accesslists:
         for rule in accesslists[acl]:
             ruleindex = accesslists[acl].index(rule)
