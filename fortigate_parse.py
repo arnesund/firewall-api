@@ -222,7 +222,6 @@ def main(configfile, verbose):
     # Initialize data structures
     networkgroups = {}
     servicegroups = {}
-    hostname = ''
 
     # Open config files and pre-initialized data structures
     shelvefile = config['NAME_NUMBER_MAPPING']
@@ -334,6 +333,12 @@ def main(configfile, verbose):
                 elem = str(match.groups()[0])
                 obj[section][elem] = {}
         
+        if section == 'router' and line[:12] == 'set hostname':
+            obj[section]['hostname'] = line.split()[2]
+            contents = obj[section]['hostname']
+            contents = contents.replace('"', '')
+            obj[section]['hostname'] = contents
+
         elif line == 'next':
             elem = False
         
@@ -351,10 +356,9 @@ def main(configfile, verbose):
                 contents = contents.replace(' ', '/')
                 obj[section][elem][title] = contents
             # Remove "" from hostname
-            if section == 'router' and line.split()[1] == 'hostname':
-                contents = obj[section][elem][title]
-                contents = contents.replace('"', '')
-                obj[section][elem][title] = contents
+
+    
+    print obj['router']['hostname']
     
     # Postprocess policy entries to FirewallRule objects
     for policy_id in obj['policy'].keys():
@@ -380,7 +384,7 @@ def main(configfile, verbose):
                 proto2rule[acl][rule.protocol] = [ruleindex]
             else:
                 proto2rule[acl][rule.protocol].append(ruleindex)
-
+                
     # Debug print            
     if verbose > 1:        
         pprint(obj)    
