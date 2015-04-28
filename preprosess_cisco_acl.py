@@ -493,7 +493,6 @@ def main(configfile, verbose):
                     else:
                         proto2rule[acl][rule.protocol].append(ruleindex)
                 comments_used = True
-            
     if verbose > 1:
         for acl in accesslists:
             logging.debug(acl)
@@ -503,7 +502,7 @@ def main(configfile, verbose):
             for proto in proto2rule[acl]:
                 logging.debug('access-list {0}, protocol {1}, rulelist: {2}'.format(acl, proto, proto2rule[acl][proto]))
             logging.debug(' ')
-
+    print accesslists[acl]
 
     # Check for rules which never get hits
     if o.verbose > 0:
@@ -520,7 +519,7 @@ def main(configfile, verbose):
                         break
                     i += 1
 
-
+    print accesslists
     # Open output database
     shelvefile = config['ACCESSLIST_DATABASE']
     try:
@@ -536,6 +535,7 @@ def main(configfile, verbose):
         sys.exit(1)
 
     # Save each access-list to output database
+    print accesslists
     if hostname not in acldb:
         acldb[hostname] = {}
     for acl in accesslists:

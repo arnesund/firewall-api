@@ -46,7 +46,7 @@ def expand_addr(entry, obj, verbose):
                     sys.stderr.write('Unable to lookup {0}. Skipping it. \n'.format(fqdn))
                 if ip_lookup:
                     res = res + ip_lookup[2]
-                    print res
+                    #print res
                 
             else:
                 sys.stderr.write('Unable to expand address "{}" to a subnet. Skipping it.\n'.format(name))
@@ -287,6 +287,7 @@ def main(configfile, verbose):
     titles['addrgrp'] = ['comment', 'member']
     titles['service'] = ['category', 'protocol', 'comment', 'protocol-number', 'tcp-portrange', 'udp-portrange', 'icmptype', 'icmpcode']
     titles['srvcgrp'] = ['comment', 'member']
+    titles['router'] = ['hostname']
 
     # Parse config file to extract all accesslists, addresses and addressgroups
     for line in open(configfile, 'r').readlines():
@@ -344,23 +345,48 @@ def main(configfile, verbose):
                 contents = obj[section][elem][title]
                 contents = contents.replace(' ', '/')
                 obj[section][elem][title] = contents
-
+            # Remove "" from hostname
+            if section == 'router' and line.split()[1] == 'hostname':
+                contents = obj[section][elem][title]
+                contents = contents.replace('"', '')
+                obj[section][elem][title] = contents
+    print obj['router']['hostname']
     if verbose > 1:
         # Debug print
         pprint(obj)
-
     # Postprocess policy entries to FirewallRule objects
+    accesslists = {}
+    proto2rule = {}
     for policy_id in obj['policy'].keys():
         if obj['policy'][policy_id]['status'] == 'enable':
-            print('Parsing entry {}'.format(policy_id))
+            acl = ""
+            
+            #print('Parsing entry {}'.formobj['policy'][policy_id]['srcintf']at(policy_id))
+            if obj['policy'][policy_id]['srcintf'] == '"Outside"':
+                acl = "outside-in"
+            elif obj['policy'][policy_id]['srcintf'] == '"Inside"' or obj['policy'][policy_id]['srcintf'] == '"Guest-Inside"':
+                acl = "inside-in"
+            if acl not in accesslists:
+                accesslists[acl] = []
             obj['policy'][policy_id]['policy_id'] = policy_id
-            rules = parse_fg_policy_entry(obj['policy'][policy_id], obj, verbose)
+            accesslists[acl] = accesslists[acl] + parse_fg_policy_entry(obj['policy'][policy_id], obj, verbose)
+    for acl in accesslists:
+        for rule in accesslists[acl]:
+            ruleindex = accesslists[acl].index(rule)
+            #print ruleindex
+            #print rule.protocol
+            accesslists[acl][ruleindex].ruleindex = ruleindex
+            if acl not in proto2rule:
+                proto2rule[acl] = {}
+            if rule.protocol not in proto2rule[acl]:
+                proto2rule[acl][rule.protocol] = [ruleindex]
+            else:
+                proto2rule[acl][rule.protocol].append(ruleindex)
+    #print proto2rule
+    
 
-        for rule in rules:
-            print(str(rule))
-            print(rule.comments)
-            print(rule.original)
 
+    
 if __name__ == '__main__':
     prog = os.path.basename(sys.argv[0])
     usage = """%prog [-h] [-v] [-v] -f <firewall config file>"""
