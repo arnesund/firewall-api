@@ -13,17 +13,32 @@
 </ul>
 <h2>Interface documentation</h2>
 <h3>Destinations Endpoint</h3>
-<p>The Destinations endpoint is used to answer queries like "What firewalls and accesslists does the traffic pass from on the way to the destination?". Giving a destination IP and a source IP for the traffic, the API returns an ordered list of firewalls and accesslists that the traffic will be checked by.</p>
+<p>The Destinations endpoint is used to answer queries like "What firewalls and accesslists does the traffic pass from on the way to the destination?". Called with no parameters, it returns a list of all subnets known to the API. Giving a destination IP and a source IP for the traffic, the API returns an ordered list of firewalls and accesslists that the traffic will be checked by.</p>
 <h4>Usage</h4>
 <h5>Parameters</h5>
 <ul>
-<li>destination, an IPv4 address in dotted quad notation (mandatory)</li>
-<li>source, an IPv4 address in dotted quad notation (mandatory)</li>
+<li>destination, an IPv4 address in dotted quad notation</li>
+<li>source, an IPv4 address in dotted quad notation</li>
 </ul>
 <h5>Sample requests</h5>
+<p><a href="http://api.firewall.met.no/api/v1/destinations">http://api.firewall.met.no/api/v1/destinations</a></p>
 <p><a href="http://api.firewall.met.no/api/v1/destinations/157.249.37.22?srcip=157.249.66.100">http://api.firewall.met.no/api/v1/destinations/157.249.37.22?srcip=157.249.66.100</a></p>
 <p><a href="http://api.firewall.met.no/api/v1/destinations/8.8.4.4?srcip=157.249.66.100">http://api.firewall.met.no/api/v1/destinations/8.8.4.4?srcip=157.249.66.100</a></p>
 <h5>Results</h5>
+<h6>With no parameters</h6>
+<p>The results is a list in JSON format with elements consisting of the subnets known to the API in CIDR notation. The list is not ordered in any specific way.</p>
+<p>Sample results:</p>
+<pre>
+{
+  "destinations": [
+    "1.2.3.0/23",
+    "100.200.30.0/24",
+    "200.3.0.0/16", 
+    "0.0.0.0/0"
+  ]
+}
+</pre>
+<h6>Given a destination and source</h6>
 <p>The results is a list in JSON format with subelements consisting of the hostname of a firewall and the accesslist on that firewall that the traffic will be checked by. Please note that the list is ordered, so the traffic will first be checked by the first firewall, then the second, and so on.</p>
 <p>Sample results:</p>
 <pre>

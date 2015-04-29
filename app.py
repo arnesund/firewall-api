@@ -35,7 +35,6 @@ def index_page():
 
 #### API Endpoints ####
 
-# API path endpoint
 def find_path(graph, start, end, path=[]):
     path = path + [start]
     if start == end:
@@ -54,6 +53,18 @@ def get_subnet(ip):
         if address in subnet:
             return str(subnet)
 
+
+@app.route('/api/v1/destinations')
+def list_destinations():
+    '''Return a list of all destination subnets known to the API'''
+    res = []
+    for subnet in subnets:
+        res.append(str(subnet))
+
+    return jsonify({'destinations': res})
+
+
+# API path endpoint
 @app.route('/api/v1/destinations/<dstip>')
 def post_path(dstip, srcip=None):
     if not srcip:
