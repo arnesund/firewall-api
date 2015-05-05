@@ -10,7 +10,7 @@ from flask import Flask, request, render_template, jsonify, make_response
 app = Flask(__name__)
 
 # Load config files outside repository
-sys.path.append('../')
+sys.path.append('../firewall-api-config')
 
 
 # Load accesslist-database

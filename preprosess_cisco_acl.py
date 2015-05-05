@@ -138,6 +138,7 @@ def parse_cisco_fw_access_list_entry(line, name2num, icmptype2num, networkgroups
         allow = True if action == 'permit' else False
 
         # Split and parse source-dest-part
+        
         parts = data[3].split()
         # Source part
         if parts[0] == 'any':
