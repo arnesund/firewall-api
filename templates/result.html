@@ -62,7 +62,7 @@ Access-list: {{ entry['result']['accesslist'] }}<br />
 {% endfor %}
 {% else %}
 
-<H2>No results, please try again!</H2>
+<p><div class="permitted">The traffic is PERMITTED</div> since it doesn't pass through any of the firewalls. The source and destination are in the same security zone, behind the same firewall.</p>
 {% endif %}
 
 
