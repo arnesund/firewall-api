@@ -46,7 +46,6 @@ def expand_addr(entry, obj, verbose):
                     sys.stderr.write('Unable to lookup {0}. Skipping it. \n'.format(fqdn))
                 if ip_lookup:
                     res = res + ip_lookup[2]
-                    #print res
                 
             else:
                 sys.stderr.write('Unable to expand address "{}" to a subnet. Skipping it.\n'.format(name))
@@ -206,9 +205,9 @@ def parse_fg_policy_entry(entry, obj, verbose):
                 rule = None
                 try:
                     if svc['protocol'] in ['tcp', 'udp']:
-                        rule = FirewallRule(permit, svc['protocol'], original, src, dst, svc['srcport'], svc['dstport'], comment, entry['policy_id'])
+                        rule = FirewallRule(permit, svc['protocol'], original, src, dst, svc['srcport'], svc['dstport'], [comment], entry['policy_id'])
                     else:
-                        rule = FirewallRule(permit, svc['protocol'], original, src, dst, FirewallRule.NO_PORT, FirewallRule.NO_PORT, comment, entry['policy_id'])
+                        rule = FirewallRule(permit, svc['protocol'], original, src, dst, FirewallRule.NO_PORT, FirewallRule.NO_PORT, [comment], entry['policy_id'])
                 except ValueError, e:
                     raise
                 
@@ -336,6 +335,8 @@ def main(configfile, verbose):
         if section == 'router' and line[:12] == 'set hostname':
             obj[section]['hostname'] = line.split()[2]
             contents = obj[section]['hostname']
+            # Remove "" from hostname
+            contents = contents.replace("'", '')
             contents = contents.replace('"', '')
             obj[section]['hostname'] = contents
 
@@ -355,10 +356,7 @@ def main(configfile, verbose):
                 contents = obj[section][elem][title]
                 contents = contents.replace(' ', '/')
                 obj[section][elem][title] = contents
-            # Remove "" from hostname
 
-    
-    print obj['router']['hostname']
     
     # Postprocess policy entries to FirewallRule objects
     for policy_id in obj['policy'].keys():
@@ -373,7 +371,7 @@ def main(configfile, verbose):
             obj['policy'][policy_id]['policy_id'] = policy_id
             accesslists[acl] = accesslists[acl] + parse_fg_policy_entry(obj['policy'][policy_id], obj, verbose)
 
-    # Prosses accesslists to map protocol to rules
+    # Process accesslist rules to map protocol to rule IDs
     for acl in accesslists:
         for rule in accesslists[acl]:
             ruleindex = accesslists[acl].index(rule)
@@ -385,9 +383,56 @@ def main(configfile, verbose):
             else:
                 proto2rule[acl][rule.protocol].append(ruleindex)
                 
+    # Populate firewall metadata
+    hostname = obj['router']['hostname']
+    if hostname not in firewalls:
+        firewalls[hostname] = {}
+    for acl in accesslists:
+        intf = '-'.join([hostname.split('-')[1], acl.split('-')[0]])
+        firewalls[hostname][intf] = {'in': acl}
+
+
     # Debug print            
     if verbose > 1:        
         pprint(obj)    
+        print(proto2rule)
+        pprint(firewalls)
+        for acl in accesslists:
+            for rule in accesslists[acl]:
+                print(rule.ruleindex, acl, str(rule))
+
+
+    # Open output database
+    shelvefile = config['ACCESSLIST_DATABASE']
+    try:
+        db = shelve.open(shelvefile)
+        if 'accesslists' in db:
+            acldb = db['accesslists']
+        else:
+            acldb = {}
+        # Save firewall metadata
+        db['firewalls'] = firewalls
+    except KeyError as e:
+        logging.error('Unable to find database entry {0} in shelve file {1}'.format(e, shelvefile))
+        sys.exit(1)
+
+    # Save each access-list to output database
+    if hostname not in acldb:
+        acldb[hostname] = {}
+    for acl in accesslists:
+        if acl not in acldb[hostname]:
+            acldb[hostname][acl] = {}
+        acldb[hostname][acl]['rules'] = accesslists[acl]
+        acldb[hostname][acl]['timestamp'] = timestamp
+        acldb[hostname][acl]['protocols'] = proto2rule[acl]
+
+    # Close output database
+    db['accesslists'] = acldb
+    db.close()
+
+    # Return dict for easier testing and debugging in ipython
+    return accesslists
+
     
 if __name__ == '__main__':
     prog = os.path.basename(sys.argv[0])

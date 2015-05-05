@@ -21,7 +21,7 @@ p = optparse.OptionParser(usage=usage, version=version, description=description,
 p.add_option('-q', "--quiet", action="store_false", dest="verbose", default=True, help='Suppress all output (except errors) and return only exit code')
 p.add_option('-s', "--srcip", dest='srcip', metavar="SOURCE-IP", help='Source IP address (required)')
 p.add_option('-d', "--dstip", dest='dstip', metavar="DESTINATION-IP", help='Destination IP address (required)')
-p.add_option("--proto", dest='proto', metavar="PROTOCOL", help='Protocol: TCP or UDP (required)')
+p.add_option("--proto", dest='proto', metavar="PROTOCOL", help='Protocol: TCP or UDP (optional, defaults to TCP)')
 p.add_option('-p', "--dstport", dest='dstport', metavar="DESTINATION-PORT", help='Destination Port (required)')
 options, args = p.parse_args()
 
@@ -41,9 +41,8 @@ else:
     dstip = options.dstip
 
 if not options.proto:
-    print('ERROR: Protocol (TCP/UDP) not supplied.\n')
-    p.print_help()
-    sys.exit(1)
+    print('No protocol supplied, assuming TCP.\n')
+    proto = 'tcp'
 else:
     proto = options.proto
 
