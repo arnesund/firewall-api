@@ -23,12 +23,16 @@ except:
     app.logger.error('Unable to open accesslist-database, exiting!')
 
 
+# Dictionary with info about any invalid input fields
+invalid = {}
+
+
 #### HTML Endpoints ####
 
 # View main page
 @app.route('/')
 def index_page():
-    return render_template('index.html')
+    return render_template('webapp.html', proto='tcp', invalid=invalid)
 
 
 # View result page
@@ -41,31 +45,57 @@ def result_page():
     proto = request.args.get('proto')
     dstport = request.args.get('dstport')
 
-    # Call other functions to perform check
-    # find_path(...)
-    # ...
-    # ...
+    # Validate input data
+    invalid = {}
+    for field in ['srcip', 'dstip', 'proto', 'dstport']:
+        invalid[field] = False
+
+    try:
+        IP(srcip)
+    except ValueError:
+        # Invalid IP address format
+        invalid['srcip'] = True
+
+    try:
+        IP(dstip)
+    except ValueError:
+        # Invalid IP address format
+        invalid['dstip'] = True
+
+    if proto not in ['tcp', 'udp']:
+        invalid['proto'] = True
+
+    try:
+        int(dstport)
+    except ValueError:
+        invalid['dstport'] = True
+
+    # Return index page again if any field contained invalid data
+    for field in ['srcip', 'dstip', 'proto', 'dstport']:
+        if invalid[field]:
+            return render_template('webapp.html', invalid=invalid, srcip=srcip, dstip=dstip, proto=proto, dstport=dstport)
+
+
+    # Query API for path from source to destination
     get_url = 'http://api.firewall.met.no/api/v1/destinations/{0}?srcip={1}'.format(dstip, srcip)
     path_output = requests.get(get_url)
     get_result = path_output.json()
     calls = []
     for parts in get_result['path']:
+        # For each hop, check if firewall would allow the traffic
         get_url = "http://api.firewall.met.no/api/v1/firewalls/{0}/rules/{1}?srcip={2}&dstip={3}&proto={4}&dstport={5}".format(parts[0], parts[1], srcip, dstip, proto, dstport)
         call_query = requests.get(get_url)
         call_result = call_query.json()
         calls.append(call_result)
 
+    # Loop through results to determine if traffic is permitted all the way
     permitted = True
     for entry in calls:
         if not entry['result']['permitted']:
             permitted = False
-        
-    return render_template('result.html', data=calls, permit=permitted, srcip=srcip, dstip=dstip, proto=proto, dstport=dstport)
 
-# Error handler
-@app.errorhandler(404)
-def not_found(error):
-    return make_response(jsonify({'error': 'Not found'}), 404)
+    # Return HTML template
+    return render_template('webapp.html', data=calls, invalid=invalid, permit=permitted, srcip=srcip, dstip=dstip, proto=proto, dstport=dstport)
 
 
 # Start integrated development webserver

@@ -22,4 +22,5 @@ HR.blue {color:#1C8AAE;background-color:#1C8AAE;height:5;}
 
 .permitted { color: green; }
 .denied { color: red; }
-
+input.invalid { border-color: red; }
+p.invalid { color: red; }

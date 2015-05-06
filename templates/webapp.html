@@ -13,17 +13,31 @@
 <tr><td>From IP-address:</td><td>To IP-address:</td><td>Port</td></tr>
 
 <tr>
-<td><INPUT NAME="srcip" TYPE="text" SIZE="15" maxlength="15" value="{{ srcip }}"></td>
-<td><INPUT NAME="dstip" TYPE="text" SIZE="15" maxlength="15" value="{{ dstip }}"></td>
-<td><INPUT NAME="dstport" TYPE="text" SIZE="5" maxlength="5" value="{{ dstport }}"></td>
+<td><INPUT NAME="srcip" TYPE="text" {% if invalid['srcip'] %}class="invalid" {% endif %}SIZE="15" maxlength="15" value="{{ srcip }}"></td>
+<td><INPUT NAME="dstip" TYPE="text" {% if invalid['dstip'] %}class="invalid" {% endif %}SIZE="15" maxlength="15" value="{{ dstip }}"></td>
+<td><INPUT NAME="dstport" TYPE="text" {% if invalid['dstport'] %}class="invalid" {% endif %}SIZE="5" maxlength="5" value="{{ dstport }}"></td>
 <td><input type="radio" name="proto" value="tcp" {% if proto == 'tcp' %}checked{% endif %}>TCP</td>
 <td><input type="radio" name="proto" value="udp" {% if proto == 'udp' %}checked{% endif %}>UDP</td>
 <td><INPUT TYPE="submit" value="Check"></td></tr>
 </table>
 
-<P>
-
 </form>
+
+{% if invalid['srcip'] %}
+<p class="invalid">Invalid value for Source IP address! Input must be a valid IPv4 address. Please try again.</p>
+{% endif %}
+
+{% if invalid['dstip'] %}
+<p class="invalid">Invalid value for Destination IP address! Input must be a valid IPv4 address. Please try again.</p>
+{% endif %}
+
+{% if invalid['proto'] %}
+<p class="invalid">Invalid value for Protocol! Input must be either TCP or UDP. Please try again.</p>
+{% endif %}
+
+{% if invalid['dstport'] %}
+<p class="invalid">Invalid value for Destination Port! Input must be a positive integer. Please try again.</p>
+{% endif %}
 
 {% if data %}
 
@@ -36,7 +50,6 @@
 {% for entry in data %}
 {% if entry['result']['permitted'] %}
 <p><div class="permitted">PERMITTED</div>
-
 
 Firewall: <A HREF="http://rancid2/cgi-bin/cvsweb/network/configs/{{ entry['result']['firewall'] }}
 {% if entry['result']['firewall'] == 'fw-main' %}
@@ -60,7 +73,7 @@ Access-list: {{ entry['result']['accesslist'] }}<br />
 {% endif %}
 
 {% endfor %}
-{% else %}
+{% elif permit %}
 
 <p><div class="permitted">The traffic is PERMITTED.</div> The traffic doesn't pass through any of the firewalls, since the source and destination are in the same security zone (behind the same firewall).</p>
 {% endif %}
