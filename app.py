@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import sys
 import shelve
-import requests
 from IPy import IP
 from firewallrule import FirewallRule
 from flask import Flask, request, render_template, jsonify, make_response
