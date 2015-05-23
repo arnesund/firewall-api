@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Populate database with test data
+if [ -d "testdata" ]; then
+  for file in testdata/*; do
+    echo "Running preprocessor for config file $file..."
+    ./preprosess_cisco_acl.py -f $file
+  done
+fi
