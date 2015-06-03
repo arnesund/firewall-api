@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 #
-# Preprosess Cisco firewall config to extract access-list rules
+# Preprosess FortiGate firewall config to extract access-list rules
 #
 import os
 import re
