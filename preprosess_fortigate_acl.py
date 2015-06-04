@@ -366,7 +366,9 @@ def main(configfile, verbose):
                 acl = "outside-in"
             elif obj['policy'][policy_id]['srcintf'] == '"Inside"' or obj['policy'][policy_id]['srcintf'] == '"Guest-Inside"':
                 acl = "inside-in"
-            elif obj['policy'][policy_id]['srcintf'] == '"Inside"' or "ipsec" in obj['policy'][policy_id]['srcintf']:
+            elif "ipsec" in obj['policy'][policy_id]['srcintf']:
+                acl = "outside-in"
+            elif "ipsec" in obj['policy'][policy_id]['dstintf']:
                 acl = "outside-in"
             if acl not in accesslists:
                 accesslists[acl] = []
