@@ -99,7 +99,7 @@ def post_path(dstip, srcip=None):
 
 
 @app.route('/api/v1/firewalls/<hostname>/rules/<acl>')
-def get_firewall_rules(hostname, acl, srcip=None, dstip=None, proto=None, dstport=None):
+def get_firewall_rules(hostname, acl, srcip=None, dstip=None, proto=None, dstport=None, ruleobjects=False):
     if not srcip:
         srcip = request.args.get('srcip')
     if not dstip:
@@ -108,6 +108,8 @@ def get_firewall_rules(hostname, acl, srcip=None, dstip=None, proto=None, dstpor
         proto = request.args.get('proto')
     if not dstport:
         dstport = request.args.get('dstport')
+    if not ruleobjects:
+        ruleobjects = request.args.get('ruleobjects')
 
     # Validate existence of accesslist data
     if hostname not in firewalls or hostname not in accesslists:
@@ -115,25 +117,70 @@ def get_firewall_rules(hostname, acl, srcip=None, dstip=None, proto=None, dstpor
     if acl not in accesslists[hostname]:
         return jsonify({'error': 'Accesslist not found in database, please try again.'}), 404
 
-    # Create Connection object to match against firewall rules
-    conn = FirewallRule(True, proto, '', srcip, dstip, dport=dstport)
+    # Use case 1: Check if specific traffic is permitted or denied
+    if srcip and dstip and proto and dstport:
+        # Create Connection object to match against firewall rules
+        conn = FirewallRule(True, proto, '', srcip, dstip, dport=dstport)
 
-    # Create list of rule IDs to check (only those with the same protocol, or protocol=IP)
-    if proto in accesslists[hostname][acl]['protocols']:
-        relevantrules = accesslists[hostname][acl]['protocols'][proto] + \
-                        accesslists[hostname][acl]['protocols']['ip']
-    else:
-        relevantrules = accesslists[hostname][acl]['protocols']['ip']
-    relevantrules.sort()
+        # Create list of rule IDs to check (only those with the same protocol, or protocol=IP)
+        if proto in accesslists[hostname][acl]['protocols']:
+            relevantrules = accesslists[hostname][acl]['protocols'][proto] + \
+                            accesslists[hostname][acl]['protocols']['ip']
+        else:
+            relevantrules = accesslists[hostname][acl]['protocols']['ip']
+        relevantrules.sort()
 
-    for ruleindex in relevantrules:
-        # Check if connection would be permitted by this rule
-        if conn in accesslists[hostname][acl]['rules'][ruleindex]:
-            result = {'permitted': True, 'firewallrule': str(accesslists[hostname][acl]['rules'][ruleindex]), \
-                    'rulecomment': '\n'.join(accesslists[hostname][acl]['rules'][ruleindex].comments)}
-            break
+        for ruleindex in relevantrules:
+            rule = accesslists[hostname][acl]['rules'][ruleindex]
+
+            # Special case: If rule is a Deny rule, connection object parameter 'action' must be altered temporarily
+            if rule.action == False:
+                conn.action = False
+
+            # Check if connection would be permitted by this rule
+            if conn in rule:
+                result = {'permitted': rule.action, 'firewallrule': str(rule), 'rulecomment': '\n'.join(rule.comments)}
+                break
+
+            # Reset back to default
+            conn.action = True
+        else:
+            # No matching rules found, so the traffic hits the implicit deny at end of ACL
+            result = {'permitted': False}
+
+    # Use case 2: Return entire ACLs or relevant parts of them
     else:
-        result = {'permitted': False}
+        # Return an ordered list of firewall rules in ACL
+        result = {'rules': []}
+        for rule in accesslists[hostname][acl]['rules']:
+            # Filter if some of the parameters where supplied
+            if srcip and srcip not in rule.src:
+                continue
+            if dstip and dstip not in rule.dst:
+                continue
+            if rule.protocol != 'ip':
+                if proto and rule.protocol != proto:
+                    continue
+            if rule.dport != [-1]:
+                if dstport and dstport not in rule.dport:
+                    continue
+            
+            # Add rule object to result dict
+            if ruleobjects:
+                # Append complete rule object as a dictionary
+                result['rules'].append({'action': rule.action,
+                    'protocol': rule.protocol,
+                    'src': str(rule.src),
+                    'dst': str(rule.dst),
+                    'sport': rule.sport,
+                    'dport': rule.dport,
+                    'original': rule.original,
+                    'comments': rule.comments,
+                    'ruleindex': rule.ruleindex,
+                    'rulenum': rule.rulenum})
+            else:
+                # Append simplified string representation of rule
+                result['rules'].append(str(rule))
 
     # Add info from request for easier reference
     result['firewall'] = hostname

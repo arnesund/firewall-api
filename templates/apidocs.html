@@ -61,21 +61,27 @@
 </pre>
 <h3>Firewalls Endpoint</h3>
 <p>The Firewalls endpoint is used to check if the specified traffic will be permitted or denied by a certain accesslist on a certain firewall. The traffic to check must be specified using a source IP, destination IP, protocol and destination port number.
+
+The endpoint can also be used to return ACL contents or interesting parts of ACLs, for example to see all relevant rules for a given IP address.
 <h4>Usage</h4>
 <h5>Parameters</h5>
 <ul>
 <li>firewall, a hostname as a string (mandatory)</li>
 <li>accesslist, a string, typically "outside-in" or "inside-in" (mandatory)</li>
-<li>destination, an IPv4 address in dotted quad notation (mandatory)</li>
-<li>source, an IPv4 address in dotted quad notation (mandatory)</li>
-<li>protocol, a string, either "tcp" or "udp" (mandatory)</li>
-<li>destination port, an integer (mandatory)</li>
+<li>destination, an IPv4 address in dotted quad notation (optional)</li>
+<li>source, an IPv4 address in dotted quad notation (optional)</li>
+<li>protocol, a string, either "tcp" or "udp" (optional)</li>
+<li>destination port, an integer (optional)</li>
+<li>ruleobjects, a boolean, set to "true" to get complete rule objects instead of string representations of rules (optional, default false)</li>
 </ul>
 <h5>Sample requests</h5>
+<p><a href="http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?dstip=157.249.37.22">http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?dstip=157.249.37.22</a></p>
+<p><a href="http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?dstip=157.249.37.22&proto=tcp">http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?dstip=157.249.37.22&proto=tcp</a></p>
+<p><a href="http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?dstip=157.249.37.22&proto=tcp&ruleobjects=true">http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?dstip=157.249.37.22&proto=tcp&ruleobjects=true</a></p>
 <p><a href="http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=100.200.30.40&dstip=157.249.37.22&dstport=80&proto=tcp">http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=100.200.30.40&dstip=157.249.37.22&dstport=80&proto=tcp</a></p>
 <p><a href="http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=1.2.3.4&dstip=157.249.37.10&dstport=80&proto=tcp">http://api.firewall.met.no/api/v1/firewalls/fw-eklima/rules/outside-in?srcip=1.2.3.4&dstip=157.249.37.10&dstport=80&proto=tcp</a></p>
-<h5>Results</h5>
-<p>The results is a dictionary in JSON format with a boolean key called "permitted" that says whether the traffic was allowed or not. The dictionary will always contain the fields "firewall" and "accesslists" derived from the request. If the traffic is allowed, the dictionary will also contain the firewall rule that allowed the traffic and the comment associated with that rule in the firewall ruleset.</p>
+<h5>Results with the parameters srcip, dstip, dstport and proto set</h5>
+<p>When checking to see if certain traffic is allowed or not, the results is a dictionary in JSON format with a boolean key called "permitted". The dictionary will always contain the fields "firewall" and "accesslists" derived from the request. If the traffic matched a rule, the dictionary will also contain the firewall rule that matched and the comment associated with that rule in the firewall ruleset.</p>
 <p>Sample results of traffic that is permitted:</p>
 <pre>
 {
@@ -95,6 +101,50 @@
     "accesslist": "outside-in", 
     "firewall": "fw-eklima", 
     "permitted": false
+  }
+}
+</pre>
+<h5>Results with only some parameters set</h5>
+<p>With only some parameters set, an ordered list of the rules that match the parameters are returned. Supplying none of the optional parameters results in all rules in the ACL being returned. By default a string representation of each rule is returned. For programmatic use rule objects are probably more useful. Set parameter ruleobjects to "true" to get complete rule objects.</p>
+<p>Sample results:</p>
+<pre>
+{
+  "result": {
+    "accesslist": "outside-in", 
+    "firewall": "fw-eklima", 
+    "rules": [
+      "permit tcp 0.0.0.0/0 -> 157.249.37.22:[80]", 
+      "permit tcp 0.0.0.0/0 -> 157.249.37.22:[8080]", 
+    ]
+  }
+}
+</pre>
+<p>Sample results with ruleobjects set to "true":</p>
+<pre>
+{
+  "result": {
+    "accesslist": "outside-in", 
+    "firewall": "fw-eklima", 
+    "rules": [
+      {
+        "action": true, 
+        "comments": [
+          "access-list outside-in remark ## Tilgang fra Internett til eKlima ##"
+        ], 
+        "dport": [
+          80
+        ], 
+        "dst": "157.249.37.22", 
+        "original": "access-list outside-in extended permit tcp any host 157.249.37.22 eq www", 
+        "protocol": "tcp", 
+        "ruleindex": 136, 
+        "rulenum": 50, 
+        "sport": [
+          -1
+        ], 
+        "src": "0.0.0.0/0"
+      }
+    ]
   }
 }
 </pre>
