@@ -400,6 +400,13 @@ def main(configfile, verbose):
                     networkgroups[grp].append(address[5:])
                 else:
                     networkgroups[grp].append(address.replace(' ', '/'))
+            elif line.find('group-object') != -1:
+                # Nested groups, so extend this group with nested group contents
+                groupname = line[13:]
+                if groupname in networkgroups:
+                    networkgroups[grp].extend(networkgroups[groupname])
+                else:
+                    logging.warning('Nested object-group "{0}" not found, group {1} may be incomplete.'.format(groupname, grp))
 
     for protocol in servicegroups:
         for grp in servicegroups[protocol]:
