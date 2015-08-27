@@ -20,6 +20,7 @@ class FirewallRule:
         comments: List of Strings describing the firewall rule. (Optional)
         rulenum: Integer - Index of the original rule in the access-list it belongs to. (Optional)
         ruleindex: Integer - Index of the expanded rule in the access-list structure. (Optional)
+        logging: Boolean - True means logging of matching sessions is enabled. (Optional)
 
     NOTE: The integer -1 is used as port number to indicate 'No port number'.
     '''
@@ -30,7 +31,7 @@ class FirewallRule:
     # Special address range matching all IPv4 addresses
     ANY = IP('0.0.0.0/0')
 
-    def __init__(self, action, protocol, original, src, dst, sport=NO_PORT, dport=NO_PORT, comments=[], rulenum=-1, ruleindex=-1):
+    def __init__(self, action, protocol, original, src, dst, sport=NO_PORT, dport=NO_PORT, comments=[], rulenum=-1, ruleindex=-1, logging=False):
         '''Initializes FirewallRule with required information'''
 
         # Validate action
@@ -101,6 +102,7 @@ class FirewallRule:
         self.comments = comments
         self.rulenum = rulenum
         self.ruleindex = ruleindex
+        self.logging = logging
 
 
     def __eq__(self, other):
@@ -117,13 +119,12 @@ class FirewallRule:
         destination = str(self.dst) if self.dport == [self.NO_PORT] else str(self.dst) + ':' + str(self.dport)
         return action + ' ' + self.protocol + ' ' + source + ' -> ' + destination
 
-
     def __repr__(self):
         '''Return the Python representation of this object'''
         return 'FirewallRule(' + repr(self.action) + ", " + repr(self.protocol) + ", '" + self.original + "', '" + \
             str(self.src) + "', '" + str(self.dst) + "', sport=" + repr(self.sport) + ", dport=" + repr(self.dport) + \
-            ", comments=" + repr(self.comments) + ", rulenum=" + str(self.rulenum) + ", ruleindex=" + str(self.ruleindex) + ')'
-            
+            ", comments=" + repr(self.comments) + ", rulenum=" + str(self.rulenum) + ", ruleindex=" + str(self.ruleindex) + \
+            ", logging=" + str(self.logging) + ')'
 
     def __contains__(self, other):
         '''
