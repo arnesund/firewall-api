@@ -174,6 +174,7 @@ def get_firewall_rules(hostname, acl, srcip=None, dstip=None, proto=None, dstpor
                     'dst': str(rule.dst),
                     'sport': rule.sport,
                     'dport': rule.dport,
+                    'logging': rule.logging,
                     'original': rule.original,
                     'comments': rule.comments,
                     'ruleindex': rule.ruleindex,
