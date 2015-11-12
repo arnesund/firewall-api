@@ -292,6 +292,78 @@ def parse_cisco_fw_access_list_entry(line, name2num, icmptype2num, networkgroups
         raise ValueError('Unable to parse access-list entry: ' + line)
 
 
+def expand_object_group(conf, grp, grouptype, networkgroups, servicegroups, name2num, verbose, protocol=None):
+    '''
+    Expand object group to a list of group members, based on config file contents.
+
+    Args:
+        conf: CiscoConfParse object referring to the config file being parsed.
+        grp: String, name of object group to expand.
+        grouptype: String, either 'network' or 'service'.
+        networkgroups: Dictionary used to expand object group names to actual network objects (IP addresses/networks)
+        servicegroups: Dictionary used to expand object group names to actual port numbers
+        name2num: Dictionary for translation of port names to numbers.
+        verbose: Debug level as integer, where zero is no debugging, 1 is some debugging and >1 is all.
+        protocol: String, name of protocol (only applies to groups of type 'service')
+
+    Returns:
+        True if successfully parsed and populated hash networkgroups or servicegroups.
+
+    Throws:
+        ValueError if unknown object group type is passed.
+    '''
+
+    if grouptype == 'network':
+        logging.debug('Parsing object-group {0} {1}'.format(grouptype, grp))
+        lines = conf.find_all_children('^object-group network {0}$'.format(grp))
+        for line in lines:
+            logging.debug('Found line: ' + line)
+            line = line.strip()
+            if line.find('network-object') != -1:
+                address = line[15:]
+                if address[:4] == 'host':
+                    networkgroups[grp].append(address[5:])
+                else:
+                    networkgroups[grp].append(address.replace(' ', '/'))
+            elif line.find('group-object') != -1:
+                # Nested groups, so extend this group with nested group contents
+                groupname = line[13:]
+                if groupname in networkgroups:
+                    networkgroups[grp].extend(networkgroups[groupname])
+                else:
+                    logging.warning('Nested object-group "{0}" not found, group {1} may be incomplete.'.format(groupname, grp))
+        # Success
+        return True
+
+    elif grouptype == 'service':
+        logging.debug('Parsing object-group {0} {1} {2}'.format(grouptype, grp, protocol))
+        lines = conf.find_all_children('^object-group service ' + grp + ' ' + protocol + '$')
+        for line in lines:
+            line = line.strip()
+            if line.find('port-object') != -1:
+                if protocol not in servicegroups:
+                    servicegroups[protocol] = {}
+                # Convert port names to numbers
+                obj = line[12:]
+                if protocol == 'tcp-udp':
+                    for p in ['tcp', 'udp']:
+                        for portname in name2num[p]:
+                            if obj.find(portname) != -1:
+                                obj = obj.replace(portname, str(name2num[p][portname]))
+                else:
+                    for portname in name2num[protocol]:
+                        if obj.find(portname) != -1:
+                            obj = obj.replace(portname, str(name2num[protocol][portname]))
+                # Add object to object group
+                servicegroups[protocol][grp].append(obj)
+        # Success
+        return True
+
+    else:
+        # Unknown group type, throw error
+        raise ValueError('Object-group type is unknown, != network|service')
+
+
 def main(configfile, verbose):
     # Initialize data structures
     networkgroups = {}
@@ -363,12 +435,16 @@ def main(configfile, verbose):
             if parts[1] == 'network':
                 # Save object group name
                 networkgroups[parts[2]] = []
+                # Expand object group by looking for member objects in configuration
+                expand_object_group(conf, parts[2], parts[1], networkgroups, servicegroups, name2num, verbose)
             elif parts[1] == 'service':
                 # Save protocol first
                 if parts[3] not in servicegroups:
                     servicegroups[parts[3]] = {}
                 # Save object group name
                 servicegroups[parts[3]][parts[2]] = []
+                # Expand object group by looking for member objects in configuration
+                expand_object_group(conf, parts[2], parts[1], networkgroups, servicegroups, name2num, verbose, parts[3])
         elif line[:8] == 'hostname':
             # Get hostname
             hostname = line[9:].strip()
@@ -389,57 +465,15 @@ def main(configfile, verbose):
         logging.error('Config file does not contain hostname of firewall')
         sys.exit(1)
 
-    # For each object group, find all member objects
-    for grp in networkgroups:
-        lines = conf.find_all_children('^object-group network ' + grp + '$')
-        for line in lines:
-            line = line.strip()
-            if line.find('network-object') != -1:
-                address = line[15:]
-                if address[:4] == 'host':
-                    networkgroups[grp].append(address[5:])
-                else:
-                    networkgroups[grp].append(address.replace(' ', '/'))
-            elif line.find('group-object') != -1:
-                # Nested groups, so extend this group with nested group contents
-                groupname = line[13:]
-                if groupname in networkgroups:
-                    networkgroups[grp].extend(networkgroups[groupname])
-                else:
-                    logging.warning('Nested object-group "{0}" not found, group {1} may be incomplete.'.format(groupname, grp))
-
-    for protocol in servicegroups:
-        for grp in servicegroups[protocol]:
-            lines = conf.find_all_children('^object-group service ' + grp + ' ' + protocol + '$')
-            for line in lines:
-                line = line.strip()
-                if line.find('port-object') != -1:
-                    if protocol not in servicegroups:
-                        servicegroups[protocol] = {}
-                    # Convert port names to numbers
-                    obj = line[12:]
-                    if protocol == 'tcp-udp':
-                        for p in ['tcp', 'udp']:
-                            for portname in name2num[p]:
-                                if obj.find(portname) != -1:
-                                    obj = obj.replace(portname, str(name2num[p][portname]))
-                    else:
-                        for portname in name2num[protocol]:
-                            if obj.find(portname) != -1:
-                                obj = obj.replace(portname, str(name2num[protocol][portname]))
-                    # Add object to object group
-                    servicegroups[protocol][grp].append(obj)
-
-
     # Print contents of group dictionaries
     if verbose > 1:
         logging.debug('NETWORK')
-        for grp in networkgroups:
+        for grp in sorted(networkgroups.keys()):
             logging.debug(' ' + grp)
             for item in networkgroups[grp]:
                 logging.debug('  ' + item)
         logging.debug('SERVICE')
-        for proto in servicegroups:
+        for proto in sorted(servicegroups.keys()):
             for grp in servicegroups[proto]:
                 logging.debug(' ' + grp + ' (' + proto + ')')
                 for item in servicegroups[proto][grp]:
